@@ -1,0 +1,17 @@
+@import "tailwindcss";
+
+/* INI WAJIB! Tanpa ini dark mode tidak akan jalan di Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Reset styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
