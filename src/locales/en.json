@@ -1,0 +1,44 @@
+{
+  "app": {
+    "title": "My Journey",
+    "greeting": "Hi, ACS Congregation!"
+  },
+  "home": {
+    "streak": "🔥 {count}/4 days",
+    "complete": "🎉 Complete! All dimensions filled!",
+    "incomplete": "Keep your consistency!",
+    "notStarted": "⏳ Not started yet",
+    "done": "✅ Done today",
+    "doneButton": "Done",
+    "startButton": "Start",
+    "comingSoon": "Coming Soon"
+  },
+  "dimensions": {
+    "wisdom": "Wisdom",
+    "physical": "Physical",
+    "spiritual": "Spiritual",
+    "social": "Social"
+  },
+  "journal": {
+    "spiritual": "Spiritual Journal",
+    "wisdom": "Wisdom Journal",
+    "physical": "Physical Journal",
+    "social": "Social Journal",
+    "subtitle": "Today's Scripture Reflection",
+    "verse": "📖 What verse did you read?",
+    "versePlaceholder": "Enter the verse you read...",
+    "message": "💬 What is God's personal message to you?",
+    "messagePlaceholder": "Write the message you received...",
+    "commitment": "📝 What commitment will you make?",
+    "commitmentPlaceholder": "Example: I will call a friend who is sick...",
+    "save": "💾 Save Journal",
+    "saving": "⏳ Saving..."
+  },
+  "attendance": {
+    "komsel": "Komsel Attendance",
+    "worker": "Worker Meeting",
+    "location": "Meeting Location",
+    "save": "💾 Save Attendance",
+    "tapToMark": "Tap name to mark present"
+  }
+}

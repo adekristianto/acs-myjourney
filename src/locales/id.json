@@ -1,0 +1,44 @@
+{
+  "app": {
+    "title": "My Journey",
+    "greeting": "Hai, Jemaat ACS!"
+  },
+  "home": {
+    "streak": "🔥 {count}/4 hari",
+    "complete": "🎉 Lengkap! Semua dimensi terisi!",
+    "incomplete": "Terus jaga konsistensimu!",
+    "notStarted": "⏳ Belum dikerjakan",
+    "done": "✅ Selesai hari ini",
+    "doneButton": "Selesai",
+    "startButton": "Kerjakan",
+    "comingSoon": "Coming Soon"
+  },
+  "dimensions": {
+    "wisdom": "Akal Budi",
+    "physical": "Fisik",
+    "spiritual": "Rohani",
+    "social": "Sosial"
+  },
+  "journal": {
+    "spiritual": "Jurnal Rohani",
+    "wisdom": "Jurnal Akal Budi",
+    "physical": "Jurnal Fisik",
+    "social": "Jurnal Sosial",
+    "subtitle": "Renungan Firman Tuhan hari ini",
+    "verse": "📖 Ayat mana yang dibaca?",
+    "versePlaceholder": "Masukkan ayat yang dibaca...",
+    "message": "💬 Apa pesan Tuhan secara pribadi?",
+    "messagePlaceholder": "Tuliskan pesan yang Anda terima...",
+    "commitment": "📝 Komitmen apa yang mau dibuat?",
+    "commitmentPlaceholder": "Contoh: Saya akan menelepon teman yang sedang sakit...",
+    "save": "💾 Simpan Jurnal",
+    "saving": "⏳ Menyimpan..."
+  },
+  "attendance": {
+    "komsel": "Absen Komsel",
+    "worker": "Meeting Pekerja",
+    "location": "Lokasi Pertemuan",
+    "save": "💾 Simpan Absen",
+    "tapToMark": "Tap nama untuk menandai hadir"
+  }
+}
