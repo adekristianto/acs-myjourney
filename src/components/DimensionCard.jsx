@@ -5,7 +5,8 @@ function DimensionCard({
   completed, 
   isActive, 
   onClick,
-  buttonText 
+  buttonText,
+  statusText  // <-- TERIMA PROP statusText
 }) {
   return (
     <div className="p-4 rounded-lg flex items-center justify-between bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-700">
@@ -14,7 +15,7 @@ function DimensionCard({
         <div>
           <p className="font-medium text-gray-900 dark:text-white">{label}</p>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {completed ? '✅ Selesai hari ini' : '⏳ Belum dikerjakan'}
+            {statusText}  {/* <-- PAKAI PROP statusText, BUKAN HARDCODE */}
           </p>
         </div>
       </div>

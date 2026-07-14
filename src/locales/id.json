@@ -32,13 +32,29 @@
     "commitment": "📝 Komitmen apa yang mau dibuat?",
     "commitmentPlaceholder": "Contoh: Saya akan menelepon teman yang sedang sakit...",
     "save": "💾 Simpan Jurnal",
-    "saving": "⏳ Menyimpan..."
+    "saving": "⏳ Menyimpan...",
+    "wisdomPrompt": "Apa yang kamu pelajari hari ini?",
+    "wisdomPlaceholder": "Tuliskan pembelajaran baru...",
+    "physicalPrompt": "Aktivitas fisik apa yang kamu lakukan hari ini?",
+    "physicalPlaceholder": "Contoh: Jalan pagi 30 menit...",
+    "socialPrompt": "Bagaimana interaksi sosialmu hari ini?",
+    "socialPlaceholder": "Contoh: Bertemu teman, membantu orang lain...",
+    "verseRequired": "⚠️ Mohon isi ayat yang dibaca terlebih dahulu",
+    "verseExample": "Contoh: \"Yohanes 3:16\" atau \"Mazmur 23\"",
+    "messageHint": "Apa yang Tuhan ingin sampaikan kepada Anda hari ini?",
+    "commitmentHint": "Langkah konkret yang akan Anda ambil hari ini",
+    "saved": "berhasil disimpan!"
   },
   "attendance": {
     "komsel": "Absen Komsel",
     "worker": "Meeting Pekerja",
     "location": "Lokasi Pertemuan",
     "save": "💾 Simpan Absen",
-    "tapToMark": "Tap nama untuk menandai hadir"
+    "tapToMark": "Tap nama untuk menandai hadir",
+    "saved": "berhasil disimpan!",
+    "present": "Hadir",
+    "from": "dari",
+    "people": "orang",
+    "workerChecklist": "Checklist kehadiran staff & pelayan"
   }
 }

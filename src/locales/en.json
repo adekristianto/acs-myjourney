@@ -32,13 +32,29 @@
     "commitment": "📝 What commitment will you make?",
     "commitmentPlaceholder": "Example: I will call a friend who is sick...",
     "save": "💾 Save Journal",
-    "saving": "⏳ Saving..."
+    "saving": "⏳ Saving...",
+    "wisdomPrompt": "What did you learn today?",
+    "wisdomPlaceholder": "Write your new learning...",
+    "physicalPrompt": "What physical activity did you do today?",
+    "physicalPlaceholder": "Example: 30 min morning walk...",
+    "socialPrompt": "How was your social interaction today?",
+    "socialPlaceholder": "Example: Met friends, helped someone...",
+    "verseRequired": "⚠️ Please fill in the verse you read",
+    "verseExample": "Example: \"John 3:16\" or \"Psalm 23\"",
+    "messageHint": "What is God's personal message to you today?",
+    "commitmentHint": "A concrete step you will take today",
+    "saved": "saved successfully!"
   },
   "attendance": {
     "komsel": "Komsel Attendance",
     "worker": "Worker Meeting",
     "location": "Meeting Location",
     "save": "💾 Save Attendance",
-    "tapToMark": "Tap name to mark present"
+    "tapToMark": "Tap name to mark present",
+    "saved": "saved successfully!",
+    "present": "Present",
+    "from": "from",
+    "people": "people",
+    "workerChecklist": "Staff & worker attendance checklist"
   }
 }

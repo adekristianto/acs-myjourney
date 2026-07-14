@@ -7,7 +7,7 @@ const translations = { id, en }
 
 export function useTranslation() {
   const [locale, setLocale] = useState(() => {
-    return localStorage.getItem('appLocale') || 'id'
+    return localStorage.getItem('appLocale') || 'en'
   })
 
   useEffect(() => {
