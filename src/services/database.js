@@ -1,92 +1,133 @@
 // src/services/database.js
-// ============================================
-// DATABASE SERVICE LAYER — Supabase
-// Persiapan sebelum credentials masuk
-// Nanti tinggal isi implementasi Supabase-nya
-// ============================================
-
-// Ini akan diisi dengan supabase client nanti
-// import { supabase } from './supabaseClient'
+import { supabase } from '../supabaseClient'
 
 // ============================================
 // JEMAAT
 // ============================================
 
 export async function getJemaat() {
-  // TODO: Implementasi Supabase
-  // const { data, error } = await supabase
-  //   .from('jemaat')
-  //   .select('*')
-  // return { data, error }
-  
-  console.log('[database] getJemaat — menunggu Supabase')
-  return { data: [], error: null }
+  const { data, error } = await supabase
+    .from('jemaat')
+    .select('*')
+  return { data, error }
 }
 
 export async function getJemaatById(id) {
-  console.log('[database] getJemaatById — menunggu Supabase')
-  return { data: null, error: null }
+  const { data, error } = await supabase
+    .from('jemaat')
+    .select('*')
+    .eq('id', id)
+    .single()
+  return { data, error }
+}
+
+export async function getJemaatByEmail(email) {
+  const { data, error } = await supabase
+    .from('jemaat')
+    .select('*')
+    .eq('email', email)
+    .single()
+  return { data, error }
 }
 
 // ============================================
 // JOURNALS (4 dimensi)
 // ============================================
 
-// dimension_type: 'wisdom', 'physical', 'spiritual', 'social'
 export async function saveJournal({ jemaatId, dimensionType, content, tanggal }) {
-  // TODO: Implementasi Supabase
-  // const { data, error } = await supabase
-  //   .from('journals')
-  //   .insert([{ jemaat_id: jemaatId, dimension_type: dimensionType, content, tanggal }])
-  // return { data, error }
-  
-  console.log('[database] saveJournal — menunggu Supabase', { dimensionType, content })
-  return { data: null, error: null }
+  const { data, error } = await supabase
+    .from('journals')
+    .insert([{
+      jemaat_id: jemaatId,
+      dimension_type: dimensionType,
+      content: content,
+      tanggal: tanggal || new Date().toISOString().split('T')[0]
+    }])
+    .select()
+  return { data, error }
 }
 
 export async function getJournalsByJemaat(jemaatId) {
-  console.log('[database] getJournalsByJemaat — menunggu Supabase')
-  return { data: [], error: null }
+  const { data, error } = await supabase
+    .from('journals')
+    .select('*')
+    .eq('jemaat_id', jemaatId)
+    .order('tanggal', { ascending: false })
+  return { data, error }
 }
 
 export async function getJournalsByDimension(jemaatId, dimensionType) {
-  console.log('[database] getJournalsByDimension — menunggu Supabase')
-  return { data: [], error: null }
+  const { data, error } = await supabase
+    .from('journals')
+    .select('*')
+    .eq('jemaat_id', jemaatId)
+    .eq('dimension_type', dimensionType)
+    .order('tanggal', { ascending: false })
+  return { data, error }
 }
 
 export async function getTodayJournal(jemaatId, dimensionType) {
-  console.log('[database] getTodayJournal — menunggu Supabase')
-  return { data: null, error: null }
+  const today = new Date().toISOString().split('T')[0]
+  const { data, error } = await supabase
+    .from('journals')
+    .select('*')
+    .eq('jemaat_id', jemaatId)
+    .eq('dimension_type', dimensionType)
+    .eq('tanggal', today)
+    .maybeSingle()
+  return { data, error }
 }
 
 // ============================================
-// STREAKS (per dimensi)
+// STREAKS
 // ============================================
 
 export async function getStreaks(jemaatId) {
-  // TODO: Implementasi Supabase
-  // const { data, error } = await supabase
-  //   .from('streaks')
-  //   .select('*')
-  //   .eq('jemaat_id', jemaatId)
-  // return { data, error }
+  const { data, error } = await supabase
+    .from('streaks')
+    .select('*')
+    .eq('jemaat_id', jemaatId)
   
-  console.log('[database] getStreaks — menunggu Supabase')
-  return { 
-    data: {
-      wisdom: 0,
-      physical: 0,
-      spiritual: 0,
-      social: 0,
-      full_streak: 0
-    }, 
-    error: null 
+  if (error) return { data: null, error }
+  
+  // Format ke object per dimensi
+  const streaks = {
+    wisdom: 0,
+    physical: 0,
+    spiritual: 0,
+    social: 0,
+    full_streak: 0
   }
+  
+  data?.forEach(s => {
+    streaks[s.dimension_type] = s.current_streak || 0
+  })
+  
+  // Full streak = nilai minimum dari semua dimensi
+  streaks.full_streak = Math.min(
+    streaks.wisdom,
+    streaks.physical,
+    streaks.spiritual,
+    streaks.social
+  )
+  
+  return { data: streaks, error: null }
 }
 
 export async function updateStreak(jemaatId, dimensionType, streakValue) {
-  console.log('[database] updateStreak — menunggu Supabase')
-  return { data: null, error: null }
+  const { data, error } = await supabase
+    .from('streaks')
+    .upsert({
+      jemaat_id: jemaatId,
+      dimension_type: dimensionType,
+      current_streak: streakValue,
+      longest_streak: streakValue,
+      last_update: new Date().toISOString().split('T')[0]
+    }, {
+      onConflict: 'jemaat_id, dimension_type'
+    })
+    .select()
+  return { data, error }
 }
 
 // ============================================
@@ -94,13 +135,24 @@ export async function updateStreak(jemaatId, dimensionType, streakValue) {
 // ============================================
 
 export async function saveKomselAttendance({ tanggal, lokasi, anggota }) {
-  console.log('[database] saveKomselAttendance — menunggu Supabase')
-  return { data: null, error: null }
+  const { data, error } = await supabase
+    .from('komsel_attendance')
+    .insert([{
+      tanggal: tanggal || new Date().toISOString().split('T')[0],
+      lokasi: lokasi,
+      anggota: anggota
+    }])
+    .select()
+  return { data, error }
 }
 
 export async function getKomselAttendance(tanggal) {
-  console.log('[database] getKomselAttendance — menunggu Supabase')
-  return { data: [], error: null }
+  const { data, error } = await supabase
+    .from('komsel_attendance')
+    .select('*')
+    .eq('tanggal', tanggal || new Date().toISOString().split('T')[0])
+    .maybeSingle()
+  return { data, error }
 }
 
 // ============================================
@@ -108,13 +160,23 @@ export async function getKomselAttendance(tanggal) {
 // ============================================
 
 export async function saveWorkerAttendance({ tanggal, anggota }) {
-  console.log('[database] saveWorkerAttendance — menunggu Supabase')
-  return { data: null, error: null }
+  const { data, error } = await supabase
+    .from('worker_attendance')
+    .insert([{
+      tanggal: tanggal || new Date().toISOString().split('T')[0],
+      anggota: anggota
+    }])
+    .select()
+  return { data, error }
 }
 
 export async function getWorkerAttendance(tanggal) {
-  console.log('[database] getWorkerAttendance — menunggu Supabase')
-  return { data: [], error: null }
+  const { data, error } = await supabase
+    .from('worker_attendance')
+    .select('*')
+    .eq('tanggal', tanggal || new Date().toISOString().split('T')[0])
+    .maybeSingle()
+  return { data, error }
 }
 
 // ============================================
@@ -122,41 +184,72 @@ export async function getWorkerAttendance(tanggal) {
 // ============================================
 
 export async function loginJemaat(email, password) {
-  // TODO: Implementasi Supabase Auth
-  // const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-  // return { data, error }
-  
-  console.log('[database] loginJemaat — menunggu Supabase')
-  return { data: null, error: null }
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  })
+  return { data, error }
 }
 
 export async function logoutJemaat() {
-  console.log('[database] logoutJemaat — menunggu Supabase')
-  return { error: null }
+  const { error } = await supabase.auth.signOut()
+  return { error }
 }
 
 export async function getCurrentJemaat() {
-  console.log('[database] getCurrentJemaat — menunggu Supabase')
-  return { data: null, error: null }
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) return { data: null, error }
+  
+  // Ambil data jemaat dari tabel
+  const { data: jemaat, error: jemaatError } = await supabase
+    .from('jemaat')
+    .select('*')
+    .eq('email', user.email)
+    .single()
+  
+  return { data: jemaat, error: jemaatError }
 }
 
 export async function updatePassword(newPassword) {
-  console.log('[database] updatePassword — menunggu Supabase')
-  return { error: null }
+  const { data, error } = await supabase.auth.updateUser({
+    password: newPassword
+  })
+  return { data, error }
 }
 
 // ============================================
-// GOAL SETTING (tambahan)
+// GOALS
 // ============================================
 
 export async function saveGoal({ jemaatId, dimensionType, target, deadline }) {
-  console.log('[database] saveGoal — menunggu Supabase')
-  return { data: null, error: null }
+  const { data, error } = await supabase
+    .from('goals')
+    .insert([{
+      jemaat_id: jemaatId,
+      dimension_type: dimensionType,
+      target: target,
+      deadline: deadline
+    }])
+    .select()
+  return { data, error }
 }
 
 export async function getGoals(jemaatId) {
-  console.log('[database] getGoals — menunggu Supabase')
-  return { data: [], error: null }
+  const { data, error } = await supabase
+    .from('goals')
+    .select('*')
+    .eq('jemaat_id', jemaatId)
+    .order('created_at', { ascending: false })
+  return { data, error }
+}
+
+export async function updateGoalStatus(goalId, isCompleted) {
+  const { data, error } = await supabase
+    .from('goals')
+    .update({ is_completed: isCompleted })
+    .eq('id', goalId)
+    .select()
+  return { data, error }
 }
 
 // ============================================
@@ -164,6 +257,25 @@ export async function getGoals(jemaatId) {
 // ============================================
 
 export async function checkFoundingMember(jemaatId) {
-  console.log('[database] checkFoundingMember — menunggu Supabase')
-  return { data: { isFoundingMember: false }, error: null }
+  const { data, error } = await supabase
+    .from('founding_member_badges')
+    .select('badge_type')
+    .eq('jemaat_id', jemaatId)
+    .maybeSingle()
+  
+  return { 
+    data: { isFoundingMember: !!data, badge: data?.badge_type || null }, 
+    error 
+  }
+}
+
+export async function awardFoundingBadge(jemaatId, badgeType = 'founder') {
+  const { data, error } = await supabase
+    .from('founding_member_badges')
+    .insert([{
+      jemaat_id: jemaatId,
+      badge_type: badgeType
+    }])
+    .select()
+  return { data, error }
 }
