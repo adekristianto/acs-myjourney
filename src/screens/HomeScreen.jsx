@@ -8,10 +8,11 @@ function HomeScreen({
   dimensions, 
   onDimensionClick,
   onKomselClick,
-  onWorkerClick
+  onWorkerClick,
+  streaks   // ← TAMBAHKAN INI
 }) {
   const { t, locale, toggleLocale } = useTranslation()
-  const completedCount = dimensions.filter(d => d.completed).length
+  const completedCount = streaks?.full_day || dimensions.filter(d => d.completed).length
 
   return (
     <div className="min-h-screen pb-20 bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white">
@@ -56,13 +57,15 @@ function HomeScreen({
       {/* 4 DIMENSI — SEMUA AKTIF */}
       <div className="p-4 space-y-3">
         {dimensions.map((dim) => {
-          const isActive = !dim.completed // SEMUA DIMENSI AKTIF
+          const isActive = !dim.completed
           const buttonText = dim.completed 
             ? t('home.doneButton')
             : t('home.startButton')
           
           const labelKey = `dimensions.${dim.id}`
           const label = t(labelKey) !== labelKey ? t(labelKey) : dim.label
+          
+          const dimStreak = streaks?.[dim.id] || 0
           
           return (
             <DimensionCard
@@ -78,6 +81,7 @@ function HomeScreen({
               }}
               buttonText={buttonText}
               statusText={dim.completed ? t('home.done') : t('home.notStarted')}
+              streak={dimStreak}
             />
           )
         })}

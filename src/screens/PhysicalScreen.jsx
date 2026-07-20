@@ -1,18 +1,37 @@
 // screens/PhysicalScreen.jsx
 import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
+import { saveJournal } from '../services/database'
 
 function PhysicalScreen({ onBack, onComplete }) {
   const { t } = useTranslation()
   const [note, setNote] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!note.trim()) {
       alert(t('journal.required') || '⚠️ Mohon isi aktivitas fisik hari ini')
       return
     }
-    onComplete()
+    
+    setIsSubmitting(true)
+    
+    const { data, error } = await saveJournal({
+      dimension: 'physical',
+      content: { note: note },
+      entryDate: new Date().toISOString().split('T')[0]
+    })
+    
+    setIsSubmitting(false)
+    
+    if (error) {
+      alert(`❌ Gagal menyimpan: ${error.message}`)
+      return
+    }
+    
     alert('✅ ' + t('dimensions.physical') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
+    onComplete()
+    setNote('')
     onBack()
   }
 
@@ -37,9 +56,10 @@ function PhysicalScreen({ onBack, onComplete }) {
         </div>
         <button
           onClick={handleSubmit}
-          className="w-full py-3 rounded-lg font-medium text-white bg-[#FF8A00] hover:bg-[#E67A00] transition-colors"
+          disabled={isSubmitting}
+          className={`w-full py-3 rounded-lg font-medium text-white transition-colors ${isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#FF8A00] hover:bg-[#E67A00]'}`}
         >
-          💾 {t('journal.save')}
+          {isSubmitting ? '⏳ ' + t('journal.saving') : '💾 ' + t('journal.save')}
         </button>
       </div>
     </div>

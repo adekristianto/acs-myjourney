@@ -6,7 +6,8 @@ function DimensionCard({
   isActive, 
   onClick,
   buttonText,
-  statusText  // <-- TERIMA PROP statusText
+  statusText,
+  streak   // ← TERIMA PROP STREAK
 }) {
   return (
     <div className="p-4 rounded-lg flex items-center justify-between bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-700">
@@ -15,7 +16,9 @@ function DimensionCard({
         <div>
           <p className="font-medium text-gray-900 dark:text-white">{label}</p>
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            {statusText}  {/* <-- PAKAI PROP statusText, BUKAN HARDCODE */}
+            {statusText}
+            {streak !== undefined && streak > 0 && ` • 🔥 ${streak} hari`}
+            {streak !== undefined && streak === 0 && ` • 🔥 0 hari`}
           </p>
         </div>
       </div>
