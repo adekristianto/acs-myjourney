@@ -256,10 +256,18 @@ export async function getCurrentJemaat() {
 }
 
 export async function updatePassword(newPassword) {
+  // Sekaligus tandai bahwa password sudah pernah diganti,
+  // supaya layar "Buat kata sandi sendiri" tidak muncul lagi
   const { data, error } = await supabase.auth.updateUser({
-    password: newPassword
+    password: newPassword,
+    data: { password_changed: true }
   })
   return { data, error }
+}
+
+// Cek apakah user masih memakai password default (Nomor Induk)
+export function needsPasswordChange(user) {
+  return user?.user_metadata?.password_changed !== true
 }
 
 // ============================================

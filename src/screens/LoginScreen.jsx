@@ -1,90 +1,101 @@
 import { useState } from 'react'
 import { loginJemaat } from '../services/database'
-import { colors } from '../theme'
+import { useTranslation } from '../hooks/useTranslation'
 
 function LoginScreen({ onLoginSuccess }) {
+  const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState('')
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      setError('Email dan password wajib diisi.')
+    if (loading) return
+    if (!email.trim() || !password) {
+      setError(t('login.errorEmpty'))
       return
     }
     setLoading(true)
-    setError(null)
-    const { data, error } = await loginJemaat(email, password)
+    setError('')
+
+    // database.js mengembalikan { data, error } — TIDAK melempar exception
+    const { data, error: loginError } = await loginJemaat(
+      email.trim().toLowerCase(),
+      password
+    )
     setLoading(false)
-    if (error) {
-      setError('Email atau password salah. Silakan coba lagi.')
+
+    if (loginError || !data?.user) {
+      setError(t('login.error'))
       return
     }
     onLoginSuccess(data.user)
   }
 
+  const onEnter = (e) => {
+    if (e.key === 'Enter') handleLogin()
+  }
+
+  const inputClass =
+    'w-full p-4 rounded-xl text-sm bg-white dark:bg-[#151515] ' +
+    'border border-[#E5E5E5] dark:border-[#2A2A2A] ' +
+    'text-[#111111] dark:text-white placeholder-gray-400'
+
   return (
-    <div
-      className="min-h-screen flex flex-col justify-center px-6"
-      style={{ backgroundColor: colors.lightBg }}
-    >
+    <div className="min-h-screen flex flex-col justify-center px-6 bg-[#F8F8F8] dark:bg-[#0D0D0D]">
       <div className="mb-10 text-center">
-        <h1 className="text-3xl font-bold" style={{ color: colors.black }}>
+        <h1 className="text-3xl font-bold text-[#111111] dark:text-white">
           My Journey
         </h1>
-        <p className="text-sm mt-2" style={{ color: colors.lightSecondary }}>
+        <p className="text-sm mt-2 text-[#666666] dark:text-[#999999]">
           GBI Anugrah Church @Storehouse
         </p>
       </div>
 
-      <div className="rounded-2xl p-6" style={{ backgroundColor: colors.lightCard }}>
-        <div className="mb-4">
-          <label className="block text-sm font-medium mb-1" style={{ color: colors.black }}>
-            Email
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="email@contoh.com"
-            className="w-full p-3 rounded-lg border text-sm"
-            style={{ borderColor: '#E5E5E5', color: colors.black }}
-          />
-        </div>
+      <div className="rounded-2xl p-6 bg-white dark:bg-[#151515]">
+        <label className="block text-sm font-medium mb-1 text-[#111111] dark:text-white">
+          {t('login.email')}
+        </label>
+        <input
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          autoCapitalize="none"
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setError('') }}
+          onKeyDown={onEnter}
+          placeholder="email@contoh.com"
+          className={inputClass + ' mb-4'}
+        />
 
-        <div className="mb-6">
-          <label className="block text-sm font-medium mb-1" style={{ color: colors.black }}>
-            Password
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Nomor Induk Jemaat (login pertama)"
-            className="w-full p-3 rounded-lg border text-sm"
-            style={{ borderColor: '#E5E5E5', color: colors.black }}
-          />
-        </div>
+        <label className="block text-sm font-medium mb-1 text-[#111111] dark:text-white">
+          {t('login.password')}
+        </label>
+        <input
+          type="password"
+          autoComplete="current-password"
+          value={password}
+          onChange={(e) => { setPassword(e.target.value); setError('') }}
+          onKeyDown={onEnter}
+          placeholder={t('login.passwordPlaceholder')}
+          className={inputClass + ' mb-6'}
+        />
 
         {error && (
-          <p className="text-sm mb-4 text-center" style={{ color: '#EF4444' }}>
-            {error}
-          </p>
+          <p className="text-sm mb-4 text-center text-[#EF4444]">{error}</p>
         )}
 
         <button
           onClick={handleLogin}
           disabled={loading}
-          className="w-full py-3 rounded-xl font-semibold text-white"
-          style={{ backgroundColor: loading ? '#999' : colors.orange }}
+          className="w-full py-4 rounded-xl font-semibold text-white bg-[#FF8A00] disabled:opacity-50 transition-opacity"
         >
-          {loading ? 'Masuk...' : 'Masuk'}
+          {loading ? t('common.signingIn') : t('login.button')}
         </button>
       </div>
 
-      <p className="text-xs text-center mt-6" style={{ color: colors.lightSecondary }}>
-        Password default: Nomor Induk Jemaat kamu. Hubungi admin gereja kalau lupa.
+      <p className="text-xs text-center mt-6 text-[#666666] dark:text-[#999999]">
+        {t('login.helper')}
       </p>
     </div>
   )

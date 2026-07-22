@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react'
 import { colors } from './theme'
-import { getCurrentJemaat } from './services/database'
+import { getCurrentJemaat, needsPasswordChange } from './services/database'
 import LoginScreen from './screens/LoginScreen'
+import SetPasswordScreen from './screens/SetPasswordScreen'
+import WelcomeScreen from './screens/WelcomeScreen'
 import HomeScreen from './screens/HomeScreen'
 import BibleJournalScreen from './screens/BibleJournalScreen'
 import KomselAttendanceScreen from './screens/KomselAttendanceScreen'
@@ -15,6 +17,7 @@ function App() {
   const [currentUser, setCurrentUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [currentScreen, setCurrentScreen] = useState('home')
+  const [authStep, setAuthStep] = useState('ready')
   const [darkMode, setDarkMode] = useState(false)
   const [dimensions, setDimensions] = useState([
     { id: 'wisdom', label: 'Akal Budi', icon: '🧠', completed: false },
@@ -49,6 +52,8 @@ function App() {
   const handleLoginSuccess = (user) => {
     setCurrentUser(user)
     setCurrentScreen('home')
+    // Login pertama -> wajib ganti password dulu
+    setAuthStep(needsPasswordChange(user) ? 'setPassword' : 'ready')
   }
 
   const handleLogout = () => {
@@ -67,6 +72,14 @@ function App() {
 
   if (!currentUser) {
     return <LoginScreen onLoginSuccess={handleLoginSuccess} />
+  }
+
+  if (authStep === 'setPassword') {
+    return <SetPasswordScreen onComplete={() => setAuthStep('welcome')} />
+  }
+
+  if (authStep === 'welcome') {
+    return <WelcomeScreen onBegin={() => setAuthStep('ready')} />
   }
 
   if (currentScreen === 'komsel') {

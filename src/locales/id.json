@@ -11,7 +11,8 @@
     "done": "✅ Selesai hari ini",
     "doneButton": "Selesai",
     "startButton": "Kerjakan",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "logout": "Keluar"
   },
   "dimensions": {
     "wisdom": "Akal Budi",
@@ -28,7 +29,7 @@
     "verse": "📖 Ayat mana yang dibaca?",
     "versePlaceholder": "Masukkan ayat yang dibaca...",
     "message": "💬 Apa pesan Tuhan secara pribadi?",
-    "messagePlaceholder": "Tuliskan pesan yang Anda terima...",
+    "messagePlaceholder": "Tuliskan pesan yang kamu terima...",
     "commitment": "📝 Komitmen apa yang mau dibuat?",
     "commitmentPlaceholder": "Contoh: Saya akan menelepon teman yang sedang sakit...",
     "save": "💾 Simpan Jurnal",
@@ -41,8 +42,8 @@
     "socialPlaceholder": "Contoh: Bertemu teman, membantu orang lain...",
     "verseRequired": "⚠️ Mohon isi ayat yang dibaca terlebih dahulu",
     "verseExample": "Contoh: \"Yohanes 3:16\" atau \"Mazmur 23\"",
-    "messageHint": "Apa yang Tuhan ingin sampaikan kepada Anda hari ini?",
-    "commitmentHint": "Langkah konkret yang akan Anda ambil hari ini",
+    "messageHint": "Apa yang Tuhan ingin sampaikan kepadamu hari ini?",
+    "commitmentHint": "Langkah konkret yang akan kamu ambil hari ini",
     "saved": "berhasil disimpan!"
   },
   "attendance": {
@@ -56,5 +57,39 @@
     "from": "dari",
     "people": "orang",
     "workerChecklist": "Checklist kehadiran staff & pelayan"
+  },
+  "login": {
+    "title": "My Journey",
+    "subtitle": "Masuk untuk melanjutkan perjalananmu",
+    "email": "Email",
+    "password": "Kata Sandi",
+    "button": "Masuk",
+    "error": "Email atau kata sandi tidak cocok. Coba lagi ya.",
+    "errorEmpty": "Mohon isi kedua kolom.",
+    "helper": "Kata sandi pertamamu adalah Nomor Induk Jemaat.",
+    "passwordPlaceholder": "Nomor Induk Jemaat (login pertama)"
+  },
+  "set_pass": {
+    "title": "Buat kata sandi milikmu sendiri",
+    "sub": "Akun ini sekarang milikmu. Pilih yang hanya kamu tahu.",
+    "new": "Kata sandi baru",
+    "confirm": "Ulangi kata sandi",
+    "show": "Tampilkan kata sandi",
+    "hide": "Sembunyikan",
+    "error_len": "Minimal 8 karakter.",
+    "error_match": "Kata sandi belum sama.",
+    "error_failed": "Gagal menyimpan. Cek koneksimu lalu coba lagi.",
+    "save": "Simpan & Lanjut"
+  },
+  "welcome": {
+    "founding": "★ SATU DARI 11 YANG PERTAMA",
+    "verse": "\"Dan Yesus makin bertambah besar dan bertambah hikmat-Nya dan besar-Nya, dan makin dikasihi oleh Allah dan manusia.\" — Lukas 2:52",
+    "slogan": "Selama ini kita hanya mengukur satu.\nMulai hari ini, empat.",
+    "begin": "Mulai"
+  },
+  "common": {
+    "loading": "Mohon tunggu...",
+    "signingIn": "Sedang masuk...",
+    "saving": "Menyimpan..."
   }
 }

@@ -9,7 +9,8 @@ function HomeScreen({
   onDimensionClick,
   onKomselClick,
   onWorkerClick,
-  streaks   // ← TAMBAHKAN INI
+  streaks,
+  onLogout   // ← TAMBAHKAN INI
 }) {
   const { t, locale, toggleLocale } = useTranslation()
   const completedCount = streaks?.full_day || dimensions.filter(d => d.completed).length
@@ -40,6 +41,13 @@ function HomeScreen({
             }`}
           >
             {darkMode ? '☀️' : '🌙'}
+          </button>
+          
+          <button
+            onClick={onLogout}
+            className="px-3 py-2 rounded-lg text-sm font-medium text-red-500 border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            {t('home.logout')}
           </button>
         </div>
       </div>

@@ -11,7 +11,8 @@
     "done": "✅ Done today",
     "doneButton": "Done",
     "startButton": "Start",
-    "comingSoon": "Coming Soon"
+    "comingSoon": "Coming Soon",
+    "logout": "Logout"
   },
   "dimensions": {
     "wisdom": "Wisdom",
@@ -56,5 +57,39 @@
     "from": "from",
     "people": "people",
     "workerChecklist": "Staff & worker attendance checklist"
+  },
+  "login": {
+    "title": "My Journey",
+    "subtitle": "Sign in to continue your journey",
+    "email": "Email",
+    "password": "Password",
+    "button": "Sign In",
+    "error": "Email or password doesn't match. Please try again.",
+    "errorEmpty": "Please fill in both fields.",
+    "helper": "Your first password is your Member ID.",
+    "passwordPlaceholder": "Member ID (first login)"
+  },
+  "set_pass": {
+    "title": "Create your own password",
+    "sub": "This account is yours now. Choose something only you know.",
+    "new": "New password",
+    "confirm": "Confirm password",
+    "show": "Show password",
+    "hide": "Hide password",
+    "error_len": "At least 8 characters.",
+    "error_match": "Passwords don't match yet.",
+    "error_failed": "Couldn't save. Check your connection and try again.",
+    "save": "Save & Continue"
+  },
+  "welcome": {
+    "founding": "★ ONE OF THE FIRST 11",
+    "verse": "\"And Jesus increased in wisdom and in stature, and in favor with God and man.\" — Luke 2:52",
+    "slogan": "We used to measure only one.\nStarting today, all four.",
+    "begin": "Begin"
+  },
+  "common": {
+    "loading": "Please wait...",
+    "signingIn": "Signing in...",
+    "saving": "Saving..."
   }
 }
