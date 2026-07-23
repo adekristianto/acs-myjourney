@@ -2,37 +2,43 @@
 import { useState, useEffect } from 'react'
 import AttendanceRow from '../components/AttendanceRow'
 import { useTranslation } from '../hooks/useTranslation'
-import { saveKomselAttendance, getCurrentJemaat } from '../services/database'
-
-const komselMembers = [
-  'Andi Wijaya',
-  'Budi Santoso',
-  'Citra Dewi',
-  'David Tan',
-  'Eka Putri',
-  'Felix Gunawan',
-]
+import { saveKomselAttendance, getCurrentJemaat, getJemaat } from '../services/database'
 
 function KomselAttendanceScreen({ onBack }) {
   const { t } = useTranslation()
-  const [attendance, setAttendance] = useState(
-    komselMembers.map(name => ({ name, present: false }))
-  )
+  const [attendance, setAttendance] = useState([])
   const [location, setLocation] = useState('Storehouse')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [user, setUser] = useState(null)
-  const [komsel, setKomsel] = useState('')
+  const [loading, setLoading] = useState(true)
 
-  // Ambil user saat component mount
+  // Ambil user dan daftar jemaat saat component mount
   useEffect(() => {
-    async function loadUser() {
-      const { data } = await getCurrentJemaat()
-      if (data) {
-        setUser(data)
-        setKomsel(data.komsel || 'Umum')
+    async function loadData() {
+      setLoading(true)
+      // Ambil user yang login
+      const { data: userData } = await getCurrentJemaat()
+      if (userData) {
+        setUser(userData)
       }
+      
+      // Ambil semua jemaat dari database
+      const { data: jemaatList, error } = await getJemaat()
+      if (error) {
+        console.error('❌ Gagal load jemaat:', error)
+      } else if (jemaatList) {
+        // Filter hanya jemaat yang aktif (bisa ditambah filter komsel nanti)
+        // Untuk sekarang, ambil semua dan buat attendance dengan present: false
+        const attendanceData = jemaatList.map(j => ({
+          id: j.id,
+          name: j.nama,
+          present: false
+        }))
+        setAttendance(attendanceData)
+      }
+      setLoading(false)
     }
-    loadUser()
+    loadData()
   }, [])
 
   const togglePresent = (index) => {
@@ -49,37 +55,35 @@ function KomselAttendanceScreen({ onBack }) {
 
     setIsSubmitting(true)
 
-    // Save ke database untuk setiap anggota yang hadir
-    const presentMembers = attendance.filter(a => a.present)
-    let successCount = 0
-    let errorCount = 0
+    const anggotaData = attendance.map(a => ({ 
+      name: a.name, 
+      present: a.present 
+    }))
 
-    for (const member of presentMembers) {
-      const { error } = await saveKomselAttendance({
-        jemaatId: user.id,
-        komsel: komsel || 'Umum',
-        lokasi: location,
-        present: true,
-        recordedBy: user.id,
-        attendanceDate: new Date().toISOString().split('T')[0]
-      })
+    const presentCount = attendance.filter(a => a.present).length
 
-      if (error) {
-        console.log('❌ Gagal save attendance:', error)
-        errorCount++
-      } else {
-        successCount++
-      }
-    }
+    const { data, error } = await saveKomselAttendance({
+      lokasi: location,
+      anggota: anggotaData,
+      tanggal: new Date().toISOString().split('T')[0]
+    })
 
     setIsSubmitting(false)
 
-    if (errorCount === 0) {
-      alert(`✅ ${t('attendance.komsel')} ${t('attendance.saved')}!\n${t('attendance.present')}: ${presentMembers.length} ${t('attendance.from')} ${attendance.length} ${t('attendance.people')}`)
-      onBack()
+    if (error) {
+      alert(`❌ Gagal menyimpan: ${error.message}`)
     } else {
-      alert(`⚠️ ${successCount} berhasil, ${errorCount} gagal disimpan`)
+      alert(`✅ ${t('attendance.komsel')} ${t('attendance.saved')}!\n${t('attendance.present')}: ${presentCount} ${t('attendance.from')} ${attendance.length} ${t('attendance.people')}`)
+      onBack()
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0D0D0D]">
+        <p className="text-gray-600 dark:text-gray-400">Memuat data jemaat...</p>
+      </div>
+    )
   }
 
   return (
@@ -102,10 +106,12 @@ function KomselAttendanceScreen({ onBack }) {
         </select>
       </div>
       <div className="p-4 space-y-2">
-        <p className="text-sm mb-2 text-gray-500 dark:text-gray-400">{t('attendance.tapToMark')}</p>
+        <p className="text-sm mb-2 text-gray-500 dark:text-gray-400">
+          {t('attendance.tapToMark')} ({attendance.length} jemaat)
+        </p>
         {attendance.map((member, index) => (
           <AttendanceRow
-            key={index}
+            key={member.id || index}
             name={member.name}
             isPresent={member.present}
             onToggle={() => togglePresent(index)}

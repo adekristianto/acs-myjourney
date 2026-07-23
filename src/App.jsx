@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { colors } from './theme'
-import { getCurrentJemaat, needsPasswordChange } from './services/database'
+import { getCurrentJemaat, getStreaks, updateStreak, needsPasswordChange } from './services/database'
 import LoginScreen from './screens/LoginScreen'
 import SetPasswordScreen from './screens/SetPasswordScreen'
 import WelcomeScreen from './screens/WelcomeScreen'
@@ -26,46 +26,101 @@ function App() {
     { id: 'social', label: 'Sosial', icon: '🤝', completed: false },
   ])
   const [streaks, setStreaks] = useState({
-    wisdom: 0, physical: 0, spiritual: 0, social: 0, full_day: 0
+    wisdom: 0,
+    physical: 0,
+    spiritual: 0,
+    social: 0,
+    full_day: 0
   })
 
+  // CEK SESSION
   useEffect(() => {
     const checkSession = async () => {
       const { data } = await getCurrentJemaat()
-      if (data) setCurrentUser(data)
+      if (data) {
+        setCurrentUser(data)
+        // Load streaks setelah user login
+        await loadStreaks(data.id)
+      }
       setAuthLoading(false)
     }
     checkSession()
   }, [])
+
+  // LOAD STREAKS
+  const loadStreaks = async (jemaatId) => {
+    if (!jemaatId) return
+    const { data } = await getStreaks(jemaatId)
+    if (data) {
+      setStreaks(data)
+      // Update dimensions completed berdasarkan streaks
+      setDimensions(prev =>
+        prev.map(dim => ({
+          ...dim,
+          completed: data[dim.id] > 0
+        }))
+      )
+    }
+  }
+
+  // UPDATE STREAK SETELAH SUBMIT JOURNAL
+  const updateStreakAfterJournal = async (dimensionId) => {
+    if (!currentUser) return
+
+    // Hitung streak baru untuk dimensi ini
+    const currentStreak = streaks[dimensionId] || 0
+    const newStreak = currentStreak + 1
+
+    // Update di database
+    await updateStreak(currentUser.id, dimensionId, newStreak)
+
+    // Update state lokal
+    setStreaks(prev => ({
+      ...prev,
+      [dimensionId]: newStreak,
+      full_day: Math.min(
+        dimensionId === 'wisdom' ? newStreak : prev.wisdom,
+        dimensionId === 'physical' ? newStreak : prev.physical,
+        dimensionId === 'spiritual' ? newStreak : prev.spiritual,
+        dimensionId === 'social' ? newStreak : prev.social
+      )
+    }))
+
+    // Update dimensions
+    setDimensions(prev =>
+      prev.map(dim =>
+        dim.id === dimensionId ? { ...dim, completed: true } : dim
+      )
+    )
+  }
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
     document.documentElement.classList.toggle('dark')
   }
 
-  const markDimensionCompleted = (id) => {
-    setDimensions(prev =>
-      prev.map(dim => dim.id === id ? { ...dim, completed: true } : dim)
-    )
-  }
-
   const handleLoginSuccess = (user) => {
     setCurrentUser(user)
     setCurrentScreen('home')
-    // Login pertama -> wajib ganti password dulu
-    setAuthStep(needsPasswordChange(user) ? 'setPassword' : 'ready')
+    setAuthStep(needsPasswordChange(user) ? 'setPassword' : 'welcome')
   }
 
   const handleLogout = () => {
     setCurrentUser(null)
     setCurrentScreen('home')
+    setDimensions([
+      { id: 'wisdom', label: 'Akal Budi', icon: '🧠', completed: false },
+      { id: 'physical', label: 'Fisik', icon: '💪', completed: false },
+      { id: 'spiritual', label: 'Rohani', icon: '🙏', completed: false },
+      { id: 'social', label: 'Sosial', icon: '🤝', completed: false },
+    ])
+    setStreaks({ wisdom: 0, physical: 0, spiritual: 0, social: 0, full_day: 0 })
   }
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: colors.lightBg }}>
-        <p style={{ color: colors.lightSecondary }}>Memuat...</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0D0D0D]">
+        <p className="text-gray-600 dark:text-gray-400">Memuat...</p>
       </div>
     )
   }
@@ -82,6 +137,7 @@ function App() {
     return <WelcomeScreen onBegin={() => setAuthStep('ready')} />
   }
 
+  // NAVIGATION
   if (currentScreen === 'komsel') {
     return <KomselAttendanceScreen onBack={() => setCurrentScreen('home')} />
   }
@@ -93,31 +149,32 @@ function App() {
       onBack={() => setCurrentScreen('home')}
       darkMode={darkMode}
       currentUser={currentUser}
-      onComplete={() => markDimensionCompleted('spiritual')}
+      onComplete={() => updateStreakAfterJournal('spiritual')}
     />
   }
   if (currentScreen === 'wisdom') {
     return <WisdomScreen
       onBack={() => setCurrentScreen('home')}
       currentUser={currentUser}
-      onComplete={() => markDimensionCompleted('wisdom')}
+      onComplete={() => updateStreakAfterJournal('wisdom')}
     />
   }
   if (currentScreen === 'physical') {
     return <PhysicalScreen
       onBack={() => setCurrentScreen('home')}
       currentUser={currentUser}
-      onComplete={() => markDimensionCompleted('physical')}
+      onComplete={() => updateStreakAfterJournal('physical')}
     />
   }
   if (currentScreen === 'social') {
     return <SocialScreen
       onBack={() => setCurrentScreen('home')}
       currentUser={currentUser}
-      onComplete={() => markDimensionCompleted('social')}
+      onComplete={() => updateStreakAfterJournal('social')}
     />
   }
 
+  // HOME
   return (
     <HomeScreen
       currentUser={currentUser}

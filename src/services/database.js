@@ -5,19 +5,12 @@ import { supabase } from '../supabaseClient'
 // JEMAAT
 // ============================================
 
+// Ambil semua jemaat (untuk attendance list)
 export async function getJemaat() {
   const { data, error } = await supabase
     .from('jemaat')
     .select('*')
-  return { data, error }
-}
-
-export async function getJemaatById(id) {
-  const { data, error } = await supabase
-    .from('jemaat')
-    .select('*')
-    .eq('id', id)
-    .single()
+    .order('nama', { ascending: true })
   return { data, error }
 }
 
@@ -26,12 +19,34 @@ export async function getJemaatByEmail(email) {
     .from('jemaat')
     .select('*')
     .eq('email', email)
-    .single()
+    .maybeSingle()
+  return { data, error }
+}
+
+export async function getCurrentJemaat() {
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) return { data: null, error }
+  
+  const { data: jemaat, error: jemaatError } = await supabase
+    .from('jemaat')
+    .select('*')
+    .eq('email', user.email)
+    .maybeSingle()
+  
+  return { data: jemaat, error: jemaatError }
+}
+
+export async function getJemaatById(id) {
+  const { data, error } = await supabase
+    .from('jemaat')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle()
   return { data, error }
 }
 
 // ============================================
-// JOURNALS (4 dimensi) — pakai 'dimension_type'
+// JOURNALS (4 dimensi)
 // ============================================
 
 export async function saveJournal({ jemaatId, dimension, content, entryDate }) {
@@ -39,9 +54,9 @@ export async function saveJournal({ jemaatId, dimension, content, entryDate }) {
     .from('journals')
     .insert([{
       jemaat_id: jemaatId,
-      dimension_type: dimension,   // ← pakai 'dimension_type'
+      dimension_type: dimension,
       content: content,
-      tanggal: entryDate || new Date().toISOString().split('T')[0]  // ← pakai 'tanggal'
+      tanggal: entryDate || new Date().toISOString().split('T')[0]
     }])
     .select()
   return { data, error }
@@ -52,7 +67,7 @@ export async function getJournalsByJemaat(jemaatId) {
     .from('journals')
     .select('*')
     .eq('jemaat_id', jemaatId)
-    .order('tanggal', { ascending: false })  // ← 'tanggal'
+    .order('tanggal', { ascending: false })
   return { data, error }
 }
 
@@ -61,7 +76,7 @@ export async function getJournalsByDimension(jemaatId, dimension) {
     .from('journals')
     .select('*')
     .eq('jemaat_id', jemaatId)
-    .eq('dimension_type', dimension)    // ← 'dimension_type'
+    .eq('dimension_type', dimension)
     .order('tanggal', { ascending: false })
   return { data, error }
 }
@@ -72,14 +87,14 @@ export async function getTodayJournal(jemaatId, dimension) {
     .from('journals')
     .select('*')
     .eq('jemaat_id', jemaatId)
-    .eq('dimension_type', dimension)    // ← 'dimension_type'
-    .eq('tanggal', today)                // ← 'tanggal'
+    .eq('dimension_type', dimension)
+    .eq('tanggal', today)
     .maybeSingle()
   return { data, error }
 }
 
 // ============================================
-// STREAKS — SESUAI SCHEMA Supabase
+// STREAKS
 // ============================================
 
 export async function getStreaks(jemaatId) {
@@ -90,7 +105,6 @@ export async function getStreaks(jemaatId) {
   
   if (error) return { data: null, error }
   
-  // Default streak values
   const streaks = {
     wisdom: 0,
     physical: 0,
@@ -99,7 +113,6 @@ export async function getStreaks(jemaatId) {
     full_day: 0
   }
   
-  // Isi dari database — pakai 'dimension_type'
   data?.forEach(s => {
     const dim = s.dimension_type
     if (dim === 'full_day') {
@@ -109,7 +122,6 @@ export async function getStreaks(jemaatId) {
     }
   })
   
-  // Hitung full_day dari minimum semua dimensi
   streaks.full_day = Math.min(
     streaks.wisdom,
     streaks.physical,
@@ -125,10 +137,10 @@ export async function updateStreak(jemaatId, dimensionType, streakValue) {
     .from('streaks')
     .upsert({
       jemaat_id: jemaatId,
-      dimension_type: dimensionType,   // ← pakai 'dimension_type'
+      dimension_type: dimensionType,
       current_streak: streakValue,
       longest_streak: streakValue,
-      last_update: new Date().toISOString().split('T')[0]  // ← pakai 'last_update'
+      last_update: new Date().toISOString().split('T')[0]
     }, {
       onConflict: 'jemaat_id, dimension_type'
     })
@@ -140,44 +152,31 @@ export async function updateStreak(jemaatId, dimensionType, streakValue) {
 // KOMSEL ATTENDANCE
 // ============================================
 
-export async function saveKomselAttendance({ 
-  jemaatId, 
-  komsel, 
-  lokasi, 
-  present, 
-  recordedBy,
-  attendanceDate 
-}) {
+export async function saveKomselAttendance({ lokasi, anggota, tanggal }) {
   const { data, error } = await supabase
     .from('komsel_attendance')
-    .upsert({
-      jemaat_id: jemaatId,
-      komsel: komsel,
-      lokasi: lokasi || null,
-      attendance_date: attendanceDate || new Date().toISOString().split('T')[0],
-      present: present || false,
-      recorded_by: recordedBy || null
-    }, {
-      onConflict: 'jemaat_id, attendance_date'
-    })
+    .insert([{
+      tanggal: tanggal || new Date().toISOString().split('T')[0],
+      lokasi: lokasi || 'Storehouse',
+      anggota: anggota || []
+    }])
     .select()
   return { data, error }
 }
 
-export async function getKomselAttendance(date) {
+export async function getKomselAttendance(tanggal) {
   const { data, error } = await supabase
     .from('komsel_attendance')
     .select('*')
-    .eq('attendance_date', date || new Date().toISOString().split('T')[0])
+    .eq('tanggal', tanggal || new Date().toISOString().split('T')[0])
   return { data, error }
 }
 
-export async function getKomselAttendanceByJemaat(jemaatId, date) {
+export async function getKomselAttendanceByTanggal(tanggal) {
   const { data, error } = await supabase
     .from('komsel_attendance')
     .select('*')
-    .eq('jemaat_id', jemaatId)
-    .eq('attendance_date', date || new Date().toISOString().split('T')[0])
+    .eq('tanggal', tanggal || new Date().toISOString().split('T')[0])
     .maybeSingle()
   return { data, error }
 }
@@ -186,40 +185,30 @@ export async function getKomselAttendanceByJemaat(jemaatId, date) {
 // WORKER ATTENDANCE
 // ============================================
 
-export async function saveWorkerAttendance({ 
-  jemaatId, 
-  present, 
-  recordedBy,
-  meetingDate 
-}) {
+export async function saveWorkerAttendance({ anggota, meetingDate }) {
   const { data, error } = await supabase
     .from('worker_attendance')
-    .upsert({
-      jemaat_id: jemaatId,
-      meeting_date: meetingDate || new Date().toISOString().split('T')[0],
-      present: present || false,
-      recorded_by: recordedBy || null
-    }, {
-      onConflict: 'jemaat_id, meeting_date'
-    })
+    .insert([{
+      tanggal: meetingDate || new Date().toISOString().split('T')[0],
+      anggota: anggota || []
+    }])
     .select()
   return { data, error }
 }
 
-export async function getWorkerAttendance(date) {
+export async function getWorkerAttendance(tanggal) {
   const { data, error } = await supabase
     .from('worker_attendance')
     .select('*')
-    .eq('meeting_date', date || new Date().toISOString().split('T')[0])
+    .eq('tanggal', tanggal || new Date().toISOString().split('T')[0])
   return { data, error }
 }
 
-export async function getWorkerAttendanceByJemaat(jemaatId, date) {
+export async function getWorkerAttendanceByTanggal(tanggal) {
   const { data, error } = await supabase
     .from('worker_attendance')
     .select('*')
-    .eq('jemaat_id', jemaatId)
-    .eq('meeting_date', date || new Date().toISOString().split('T')[0])
+    .eq('tanggal', tanggal || new Date().toISOString().split('T')[0])
     .maybeSingle()
   return { data, error }
 }
@@ -241,23 +230,7 @@ export async function logoutJemaat() {
   return { error }
 }
 
-export async function getCurrentJemaat() {
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) return { data: null, error }
-  
-  // Ambil data jemaat dari tabel
-  const { data: jemaat, error: jemaatError } = await supabase
-    .from('jemaat')
-    .select('*')
-    .eq('email', user.email)
-    .single()
-  
-  return { data: jemaat, error: jemaatError }
-}
-
 export async function updatePassword(newPassword) {
-  // Sekaligus tandai bahwa password sudah pernah diganti,
-  // supaya layar "Buat kata sandi sendiri" tidak muncul lagi
   const { data, error } = await supabase.auth.updateUser({
     password: newPassword,
     data: { password_changed: true }
@@ -265,13 +238,12 @@ export async function updatePassword(newPassword) {
   return { data, error }
 }
 
-// Cek apakah user masih memakai password default (Nomor Induk)
 export function needsPasswordChange(user) {
   return user?.user_metadata?.password_changed !== true
 }
 
 // ============================================
-// GOALS — SESUAI SCHEMA
+// GOALS
 // ============================================
 
 export async function saveGoal({ jemaatId, dimension, goalText }) {
@@ -279,8 +251,8 @@ export async function saveGoal({ jemaatId, dimension, goalText }) {
     .from('goals')
     .insert([{
       jemaat_id: jemaatId,
-      dimension: dimension,      // ← 'dimension'
-      goal_text: goalText        // ← 'goal_text'
+      dimension: dimension,
+      goal_text: goalText
     }])
     .select()
   return { data, error }
