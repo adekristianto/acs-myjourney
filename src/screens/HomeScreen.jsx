@@ -10,31 +10,31 @@ function HomeScreen({
   onKomselClick,
   onWorkerClick,
   streaks,
-  onLogout   // ← TAMBAHKAN INI
+  onLogout
 }) {
   const { t, locale, toggleLocale } = useTranslation()
   const completedCount = streaks?.full_day || dimensions.filter(d => d.completed).length
 
   return (
-    <div className="min-h-screen pb-20 bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white">
+    <div className="max-w-md mx-auto min-h-screen pb-20 bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white">
       {/* HEADER */}
       <div className="flex justify-between items-center p-4">
-        <div>
+        <div className="flex-1">
           <h1 className="text-xl font-bold">{t('app.title')}</h1>
           <p className="text-sm text-gray-600 dark:text-gray-400">
             {t('app.greeting')}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-1.5">
           <button
             onClick={toggleLocale}
-            className="px-3 py-2 rounded-lg text-sm font-medium border border-gray-300 dark:border-gray-700"
+            className="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-300 dark:border-gray-700"
           >
-            {locale === 'en' ? '🇮🇩 ID' : '🇬🇧 EN'}
+            {locale === 'en' ? '🇮🇩' : '🇬🇧'}
           </button>
           <button
             onClick={toggleDarkMode}
-            className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
               darkMode 
                 ? 'bg-[#FF8A00] text-black' 
                 : 'bg-[#111111] text-white'
@@ -42,12 +42,11 @@ function HomeScreen({
           >
             {darkMode ? '☀️' : '🌙'}
           </button>
-          
           <button
             onClick={onLogout}
-            className="px-3 py-2 rounded-lg text-sm font-medium text-red-500 border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+            className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-500 border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
-            {t('home.logout')}
+            {t('home.logout') || 'Logout'}
           </button>
         </div>
       </div>
@@ -62,7 +61,7 @@ function HomeScreen({
         </p>
       </div>
 
-      {/* 4 DIMENSI — SEMUA AKTIF */}
+      {/* 4 DIMENSI */}
       <div className="p-4 space-y-3">
         {dimensions.map((dim) => {
           const isActive = !dim.completed

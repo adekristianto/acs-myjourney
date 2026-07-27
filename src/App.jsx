@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { colors } from './theme'
-import { getCurrentJemaat, getStreaks, updateStreak, needsPasswordChange } from './services/database'
+import { getCurrentJemaat, getStreaks, updateStreak, needsPasswordChange, logoutJemaat } from './services/database'
 import LoginScreen from './screens/LoginScreen'
 import SetPasswordScreen from './screens/SetPasswordScreen'
 import WelcomeScreen from './screens/WelcomeScreen'
@@ -105,7 +105,24 @@ function App() {
     setAuthStep(needsPasswordChange(user) ? 'setPassword' : 'welcome')
   }
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Logout dari Supabase
+    await logoutJemaat()
+    
+    // Hapus session di localStorage
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    if (supabaseUrl) {
+      const key = supabaseUrl.replace(/^https?:\/\//, '').replace(/\.supabase\.co$/, '')
+      localStorage.removeItem(`sb-${key}-auth-token`)
+    }
+    // Hapus semua yang mengandung 'supabase'
+    Object.keys(localStorage).forEach(key => {
+      if (key.includes('supabase') || key.includes('sb-')) {
+        localStorage.removeItem(key)
+      }
+    })
+    
+    // Reset state
     setCurrentUser(null)
     setCurrentScreen('home')
     setDimensions([
