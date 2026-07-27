@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { saveJournal, getCurrentJemaat } from '../services/database'
 
-function BibleJournalScreen({ onBack, onComplete }) {
+function BibleJournalScreen({ onBack, onComplete, darkMode, currentUser }) {
   const { t } = useTranslation()
   const [ayat, setAyat] = useState('')
   const [pesan, setPesan] = useState('')
@@ -11,44 +11,42 @@ function BibleJournalScreen({ onBack, onComplete }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async () => {
-    if (!ayat.trim()) {
-      alert(t('journal.verseRequired') || '⚠️ Mohon isi ayat yang dibaca terlebih dahulu')
-      return
-    }
-    
-    setIsSubmitting(true)
-    
-    // 1. Ambil current user
-    const { data: user, error: userError } = await getCurrentJemaat()
-    if (userError || !user) {
+  if (!ayat.trim()) {
+    alert(t('journal.verseRequired') || '⚠️ Mohon isi ayat yang dibaca')
+    return
+  }
+
+  setIsSubmitting(true)
+
+  const jemaatId = currentUser?.id
+    if (!jemaatId) {
       alert('❌ Silakan login terlebih dahulu')
       setIsSubmitting(false)
       return
     }
-    
-    // 2. Siapkan content
+
+    // Simpan sebagai object dengan semua field
     const content = {
       verse: ayat,
       message: pesan,
       commitment: komitmen
     }
-    
-    // 3. SAVE KE DATABASE
+
     const { data, error } = await saveJournal({
-      jemaatId: user.id,
+      jemaatId: jemaatId,
       dimension: 'spiritual',
       content: content,
       entryDate: new Date().toISOString().split('T')[0]
     })
-    
+
     setIsSubmitting(false)
-    
+
     if (error) {
       alert(`❌ Gagal menyimpan: ${error.message}`)
       return
     }
-    
-    alert(`✅ ${t('journal.spiritual')} ${t('journal.saved')}!`)
+
+    alert(`✅ ${t('journal.spiritual')} ${t('journal.saved')}!\n\n📖 ${t('journal.verse')}: ${ayat}\n💬 ${t('journal.message')}: ${pesan || '(tidak diisi)'}\n📝 ${t('journal.commitment')}: ${komitmen || '(tidak diisi)'}`)
     onComplete()
     setAyat('')
     setPesan('')

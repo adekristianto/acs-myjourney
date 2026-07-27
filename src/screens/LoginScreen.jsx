@@ -18,7 +18,6 @@ function LoginScreen({ onLoginSuccess }) {
     setLoading(true)
     setError('')
 
-    // database.js mengembalikan { data, error } — TIDAK melempar exception
     const { data, error: loginError } = await loginJemaat(
       email.trim().toLowerCase(),
       password
@@ -44,6 +43,14 @@ function LoginScreen({ onLoginSuccess }) {
   return (
     <div className="min-h-screen flex flex-col justify-center px-6 bg-[#F8F8F8] dark:bg-[#0D0D0D]">
       <div className="mb-10 text-center">
+        {/* LOGO ACS — CENTER */}
+        <div className="flex justify-center mb-5">
+          <img
+            src="/acs-logo.png"
+            alt="ACS"
+            className="h-14 w-auto object-contain"
+          />
+        </div>
         <h1 className="text-3xl font-bold text-[#111111] dark:text-white">
           My Journey
         </h1>

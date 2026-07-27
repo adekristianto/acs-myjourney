@@ -2,9 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>acs-myjourney</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <title>My Journey — ACS</title>
+    <meta name="description" content="Perjalanan pertumbuhan 4 dimensi berdasarkan Lukas 2:52" />
+
+    <!-- PWA: WAJIB untuk Add to Home Screen -->
+    <link rel="manifest" href="/manifest.json" />
+    <meta name="theme-color" content="#111111" />
+
+    <!-- Android: Chrome Add to Home Screen -->
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- iOS: Safari tidak baca manifest, butuh meta sendiri -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="My Journey" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Icon browser -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
+
+    <!-- Preview saat link di-share di WhatsApp -->
+    <meta property="og:title" content="My Journey — ACS" />
+    <meta property="og:description" content="Yesus bertumbuh di 4 area. Mulai hari ini, kita ukur keempatnya." />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="/" />
   </head>
   <body>
     <div id="root"></div>

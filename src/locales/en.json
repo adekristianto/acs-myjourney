@@ -59,8 +59,6 @@
     "workerChecklist": "Staff & worker attendance checklist"
   },
   "login": {
-    "title": "My Journey",
-    "subtitle": "Sign in to continue your journey",
     "email": "Email",
     "password": "Password",
     "button": "Sign In",

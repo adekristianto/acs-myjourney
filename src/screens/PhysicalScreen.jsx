@@ -3,32 +3,40 @@ import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { saveJournal } from '../services/database'
 
-function PhysicalScreen({ onBack, onComplete }) {
+function PhysicalScreen({ onBack, onComplete, currentUser }) {
   const { t } = useTranslation()
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async () => {
-    if (!note.trim()) {
-      alert(t('journal.required') || '⚠️ Mohon isi aktivitas fisik hari ini')
+  if (!note.trim()) {
+    alert(t('journal.required') || '⚠️ Mohon isi aktivitas fisik hari ini')
+    return
+  }
+
+  setIsSubmitting(true)
+
+  const jemaatId = currentUser?.id
+    if (!jemaatId) {
+      alert('❌ Silakan login terlebih dahulu')
+      setIsSubmitting(false)
       return
     }
-    
-    setIsSubmitting(true)
-    
+
     const { data, error } = await saveJournal({
+      jemaatId: jemaatId,
       dimension: 'physical',
       content: { note: note },
       entryDate: new Date().toISOString().split('T')[0]
     })
-    
+
     setIsSubmitting(false)
-    
+
     if (error) {
       alert(`❌ Gagal menyimpan: ${error.message}`)
       return
     }
-    
+
     alert('✅ ' + t('dimensions.physical') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
     onComplete()
     setNote('')

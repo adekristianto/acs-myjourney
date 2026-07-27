@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { saveJournal } from '../services/database'
 
-function SocialScreen({ onBack, onComplete }) {
+function SocialScreen({ onBack, onComplete, currentUser }) {
   const { t } = useTranslation()
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -13,22 +13,30 @@ function SocialScreen({ onBack, onComplete }) {
       alert(t('journal.required') || '⚠️ Mohon isi interaksi sosial hari ini')
       return
     }
-    
+
     setIsSubmitting(true)
-    
+
+    const jemaatId = currentUser?.id
+    if (!jemaatId) {
+      alert('❌ Silakan login terlebih dahulu')
+      setIsSubmitting(false)
+      return
+    }
+
     const { data, error } = await saveJournal({
+      jemaatId: jemaatId,
       dimension: 'social',
       content: { note: note },
       entryDate: new Date().toISOString().split('T')[0]
     })
-    
+
     setIsSubmitting(false)
-    
+
     if (error) {
       alert(`❌ Gagal menyimpan: ${error.message}`)
       return
     }
-    
+
     alert('✅ ' + t('dimensions.social') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
     onComplete()
     setNote('')

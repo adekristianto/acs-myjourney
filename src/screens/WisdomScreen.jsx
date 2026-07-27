@@ -3,7 +3,8 @@ import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { saveJournal } from '../services/database'
 
-function WisdomScreen({ onBack, onComplete }) {
+// SESUDAH (BENAR)
+function WisdomScreen({ onBack, onComplete, currentUser }) {
   const { t } = useTranslation()
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -13,22 +14,31 @@ function WisdomScreen({ onBack, onComplete }) {
       alert(t('journal.required') || '⚠️ Mohon isi pembelajaran hari ini')
       return
     }
-    
+
     setIsSubmitting(true)
-    
+
+    // Ambil ID dari currentUser
+    const jemaatId = currentUser?.id
+    if (!jemaatId) {
+      alert('❌ Silakan login terlebih dahulu')
+      setIsSubmitting(false)
+      return
+    }
+
     const { data, error } = await saveJournal({
+      jemaatId: jemaatId,
       dimension: 'wisdom',
       content: { note: note },
       entryDate: new Date().toISOString().split('T')[0]
     })
-    
+
     setIsSubmitting(false)
-    
+
     if (error) {
       alert(`❌ Gagal menyimpan: ${error.message}`)
       return
     }
-    
+
     alert('✅ ' + t('dimensions.wisdom') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
     onComplete()
     setNote('')
