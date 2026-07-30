@@ -1,3 +1,4 @@
+// screens/WelcomeScreen.jsx
 import { useEffect, useState } from 'react'
 import { getCurrentJemaat, checkFoundingMember } from '../services/database'
 import { useTranslation } from '../hooks/useTranslation'
@@ -17,11 +18,9 @@ function WelcomeScreen({ onBegin }) {
   useEffect(() => {
     let active = true
     const check = async () => {
-      // getCurrentJemaat mengembalikan { data, error } — id ada di data.id
       const { data: jemaat } = await getCurrentJemaat()
       if (!jemaat?.id) { if (active) setChecked(true); return }
 
-      // checkFoundingMember mengembalikan { data: { isFoundingMember }, error }
       const { data: badge } = await checkFoundingMember(jemaat.id)
       if (!active) return
       setIsFounding(badge?.isFoundingMember === true)
@@ -34,11 +33,15 @@ function WelcomeScreen({ onBegin }) {
   return (
     <div className="min-h-screen px-6 py-10 flex flex-col items-center justify-center text-center bg-[#0D0D0D]">
 
-      {/* Badge Founding Member — hanya untuk 11 orang */}
-      <div className="h-10 mb-6 flex items-center">
+      {/* BADGE FOUNDING MEMBER — Gambar khusus */}
+      <div className="h-24 mb-4 flex items-center justify-center">
         {checked && isFounding && (
-          <div className="acs-fade-in text-[#FFD700] border border-[#FFD700] px-4 py-1.5 rounded-full text-xs tracking-wide">
-            {t('welcome.founding')}
+          <div className="acs-fade-in">
+            <img 
+              src="/founder-badge.png" 
+              alt="Founding Member" 
+              className="w-24 h-24 object-contain"
+            />
           </div>
         )}
       </div>

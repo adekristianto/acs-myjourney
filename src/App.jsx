@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
 import { colors } from './theme'
-import { getCurrentJemaat, getStreaks, updateStreak, needsPasswordChange, logoutJemaat } from './services/database'
+import { 
+  getCurrentJemaat, 
+  getStreaks, 
+  getTodayJournal,
+  updateStreak, 
+  needsPasswordChange, 
+  logoutJemaat 
+} from './services/database'
 import LoginScreen from './screens/LoginScreen'
 import SetPasswordScreen from './screens/SetPasswordScreen'
 import WelcomeScreen from './screens/WelcomeScreen'
@@ -18,7 +25,9 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true)
   const [currentScreen, setCurrentScreen] = useState('home')
   const [authStep, setAuthStep] = useState('ready')
-  const [darkMode, setDarkMode] = useState(false)
+  const [darkMode, setDarkMode] = useState(() => {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
   const [dimensions, setDimensions] = useState([
     { id: 'wisdom', label: 'Akal Budi', icon: '🧠', completed: false },
     { id: 'physical', label: 'Fisik', icon: '💪', completed: false },
@@ -35,31 +44,45 @@ function App() {
 
   // CEK SESSION
   useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    }
+
     const checkSession = async () => {
       const { data } = await getCurrentJemaat()
       if (data) {
         setCurrentUser(data)
-        // Load streaks setelah user login
-        await loadStreaks(data.id)
+        await loadTodayStatus(data.id)
       }
       setAuthLoading(false)
     }
     checkSession()
   }, [])
 
-  // LOAD STREAKS
-  const loadStreaks = async (jemaatId) => {
+  // LOAD STATUS HARI INI (dari journal, BUKAN streak)
+  const loadTodayStatus = async (jemaatId) => {
     if (!jemaatId) return
-    const { data } = await getStreaks(jemaatId)
-    if (data) {
-      setStreaks(data)
-      // Update dimensions completed berdasarkan streaks
-      setDimensions(prev =>
-        prev.map(dim => ({
-          ...dim,
-          completed: data[dim.id] > 0
-        }))
-      )
+
+    const dims = ['wisdom', 'physical', 'spiritual', 'social']
+    const todayStatus = {}
+    const today = new Date().toISOString().split('T')[0]
+
+    for (const dim of dims) {
+      const { data, error } = await getTodayJournal(jemaatId, dim)
+      const hasTodayJournal = data && data.tanggal === today
+      todayStatus[dim] = !error && hasTodayJournal
+    }
+
+    setDimensions(prev =>
+      prev.map(dim => ({
+        ...dim,
+        completed: todayStatus[dim.id] || false
+      }))
+    )
+
+    const { data: streakData } = await getStreaks(jemaatId)
+    if (streakData) {
+      setStreaks(streakData)
     }
   }
 
@@ -67,14 +90,19 @@ function App() {
   const updateStreakAfterJournal = async (dimensionId) => {
     if (!currentUser) return
 
-    // Hitung streak baru untuk dimensi ini
     const currentStreak = streaks[dimensionId] || 0
     const newStreak = currentStreak + 1
 
-    // Update di database
-    await updateStreak(currentUser.id, dimensionId, newStreak)
+    const result = await updateStreak(currentUser.id, dimensionId, newStreak)
 
-    // Update state lokal
+    if (result.error) {
+      console.error('❌ Streak update failed:', result.error)
+      alert('⚠️ Gagal menyimpan streak. Jurnal tetap tersimpan, tapi streak mungkin tidak akurat.')
+      return
+    }
+
+    await loadTodayStatus(currentUser.id)
+
     setStreaks(prev => ({
       ...prev,
       [dimensionId]: newStreak,
@@ -85,13 +113,6 @@ function App() {
         dimensionId === 'social' ? newStreak : prev.social
       )
     }))
-
-    // Update dimensions
-    setDimensions(prev =>
-      prev.map(dim =>
-        dim.id === dimensionId ? { ...dim, completed: true } : dim
-      )
-    )
   }
 
   const toggleDarkMode = () => {
@@ -106,23 +127,19 @@ function App() {
   }
 
   const handleLogout = async () => {
-    // Logout dari Supabase
     await logoutJemaat()
     
-    // Hapus session di localStorage
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
     if (supabaseUrl) {
       const key = supabaseUrl.replace(/^https?:\/\//, '').replace(/\.supabase\.co$/, '')
       localStorage.removeItem(`sb-${key}-auth-token`)
     }
-    // Hapus semua yang mengandung 'supabase'
     Object.keys(localStorage).forEach(key => {
       if (key.includes('supabase') || key.includes('sb-')) {
         localStorage.removeItem(key)
       }
     })
     
-    // Reset state
     setCurrentUser(null)
     setCurrentScreen('home')
     setDimensions([
@@ -133,6 +150,13 @@ function App() {
     ])
     setStreaks({ wisdom: 0, physical: 0, spiritual: 0, social: 0, full_day: 0 })
   }
+
+  // Helper: render screen dengan container (max-w-lg lebih lega)
+  const renderWithContainer = (Screen, props) => (
+    <div className="max-w-lg mx-auto min-h-screen bg-gray-50 dark:bg-[#0D0D0D]">
+      <Screen {...props} />
+    </div>
+  )
 
   if (authLoading) {
     return (
@@ -154,59 +178,61 @@ function App() {
     return <WelcomeScreen onBegin={() => setAuthStep('ready')} />
   }
 
-  // NAVIGATION
+  // NAVIGATION — semua screen dibungkus container max-w-lg
   if (currentScreen === 'komsel') {
-    return <KomselAttendanceScreen onBack={() => setCurrentScreen('home')} />
+    return renderWithContainer(KomselAttendanceScreen, { onBack: () => setCurrentScreen('home') })
   }
   if (currentScreen === 'worker') {
-    return <WorkerAttendanceScreen onBack={() => setCurrentScreen('home')} />
+    return renderWithContainer(WorkerAttendanceScreen, { onBack: () => setCurrentScreen('home') })
   }
   if (currentScreen === 'bible') {
-    return <BibleJournalScreen
-      onBack={() => setCurrentScreen('home')}
-      darkMode={darkMode}
-      currentUser={currentUser}
-      onComplete={() => updateStreakAfterJournal('spiritual')}
-    />
+    return renderWithContainer(BibleJournalScreen, {
+      onBack: () => setCurrentScreen('home'),
+      darkMode,
+      currentUser,
+      onComplete: () => updateStreakAfterJournal('spiritual')
+    })
   }
   if (currentScreen === 'wisdom') {
-    return <WisdomScreen
-      onBack={() => setCurrentScreen('home')}
-      currentUser={currentUser}
-      onComplete={() => updateStreakAfterJournal('wisdom')}
-    />
+    return renderWithContainer(WisdomScreen, {
+      onBack: () => setCurrentScreen('home'),
+      currentUser,
+      onComplete: () => updateStreakAfterJournal('wisdom')
+    })
   }
   if (currentScreen === 'physical') {
-    return <PhysicalScreen
-      onBack={() => setCurrentScreen('home')}
-      currentUser={currentUser}
-      onComplete={() => updateStreakAfterJournal('physical')}
-    />
+    return renderWithContainer(PhysicalScreen, {
+      onBack: () => setCurrentScreen('home'),
+      currentUser,
+      onComplete: () => updateStreakAfterJournal('physical')
+    })
   }
   if (currentScreen === 'social') {
-    return <SocialScreen
-      onBack={() => setCurrentScreen('home')}
-      currentUser={currentUser}
-      onComplete={() => updateStreakAfterJournal('social')}
-    />
+    return renderWithContainer(SocialScreen, {
+      onBack: () => setCurrentScreen('home'),
+      currentUser,
+      onComplete: () => updateStreakAfterJournal('social')
+    })
   }
 
-  // HOME
+  // HOME — max-w-lg untuk layout lebih lega
   return (
-    <HomeScreen
-      currentUser={currentUser}
-      darkMode={darkMode}
-      toggleDarkMode={toggleDarkMode}
-      dimensions={dimensions}
-      streaks={streaks}
-      onDimensionClick={(id) => {
-        const map = { wisdom: 'wisdom', physical: 'physical', spiritual: 'bible', social: 'social' }
-        setCurrentScreen(map[id])
-      }}
-      onKomselClick={() => setCurrentScreen('komsel')}
-      onWorkerClick={() => setCurrentScreen('worker')}
-      onLogout={handleLogout}
-    />
+    <div className="max-w-lg mx-auto">
+      <HomeScreen
+        currentUser={currentUser}
+        darkMode={darkMode}
+        toggleDarkMode={toggleDarkMode}
+        dimensions={dimensions}
+        streaks={streaks}
+        onDimensionClick={(id) => {
+          const map = { wisdom: 'wisdom', physical: 'physical', spiritual: 'bible', social: 'social' }
+          setCurrentScreen(map[id])
+        }}
+        onKomselClick={() => setCurrentScreen('komsel')}
+        onWorkerClick={() => setCurrentScreen('worker')}
+        onLogout={handleLogout}
+      />
+    </div>
   )
 }
 
