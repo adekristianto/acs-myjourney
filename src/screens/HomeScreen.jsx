@@ -16,14 +16,16 @@ function HomeScreen({
   const { t, locale, toggleLocale } = useTranslation()
   const completedCount = streaks?.full_day || dimensions.filter(d => d.completed).length
 
-  // Ambil nama user dari currentUser
   const userName = currentUser?.nama || 'ACS Congregation'
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white overflow-x-hidden">
-      <div className="max-w-lg mx-auto px-4 pb-20">
+    <div className="min-h-screen flex flex-col items-center justify-start px-6 pt-14 pb-20 bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white overflow-x-hidden">
+      
+      {/* Container — lebar terbatas seperti Login & Welcome */}
+      <div className="w-full max-w-sm">
+        
         {/* HEADER */}
-        <div className="flex justify-between items-center py-4">
+        <div className="flex justify-between items-center py-3">
           <div className="flex-1 min-w-0">
             <h1 className="text-xl font-bold truncate">{t('app.title')}</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
@@ -57,7 +59,7 @@ function HomeScreen({
         </div>
 
         {/* STREAK */}
-        <div className="p-4 rounded-lg text-center bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-700">
+        <div className="p-4 rounded-lg text-center bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-700 mb-4">
           <p className="text-2xl font-bold text-[#FF8A00]">
             {t('home.streak').replace('{count}', completedCount)}
           </p>
@@ -67,7 +69,7 @@ function HomeScreen({
         </div>
 
         {/* 4 DIMENSI */}
-        <div className="py-3 space-y-3">
+        <div className="space-y-3 mb-4">
           {dimensions.map((dim) => {
             const isActive = !dim.completed
             const buttonText = dim.completed 
@@ -114,6 +116,7 @@ function HomeScreen({
             👥 {t('attendance.worker')}
           </button>
         </div>
+
       </div>
     </div>
   )

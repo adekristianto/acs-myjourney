@@ -10,7 +10,7 @@ const DIMENSIONS = [
   { key: 'social',    icon: '\u{1F91D}' },
 ]
 
-function WelcomeScreen({ onBegin }) {
+function WelcomeScreen({ onBegin, darkMode }) {
   const { t } = useTranslation()
   const [isFounding, setIsFounding] = useState(false)
   const [checked, setChecked] = useState(false)
@@ -31,9 +31,13 @@ function WelcomeScreen({ onBegin }) {
   }, [])
 
   return (
-    <div className="min-h-screen px-6 py-10 flex flex-col items-center justify-center text-center bg-[#0D0D0D]">
-
-      {/* BADGE FOUNDING MEMBER — Gambar khusus */}
+    <div className={`min-h-screen px-6 py-10 flex flex-col items-center justify-center text-center pt-safe ${
+      darkMode 
+        ? 'bg-[#0D0D0D] text-white' 
+        : 'bg-[#F8F8F8] text-[#111111]'
+    }`}>
+      
+      {/* BADGE FOUNDING MEMBER */}
       <div className="h-24 mb-4 flex items-center justify-center">
         {checked && isFounding && (
           <div className="acs-fade-in">
@@ -46,7 +50,7 @@ function WelcomeScreen({ onBegin }) {
         )}
       </div>
 
-      {/* Empat dimensi — muncul berurutan */}
+      {/* EMPAT DIMENSI */}
       <div className="flex gap-3 mb-10">
         {DIMENSIONS.map((d, i) => (
           <div
@@ -54,21 +58,31 @@ function WelcomeScreen({ onBegin }) {
             className="acs-rise flex flex-col items-center gap-2"
             style={{ animationDelay: `${i * 120}ms` }}
           >
-            <div className="w-14 h-14 rounded-full border border-[#333] flex items-center justify-center text-xl">
+            <div className={`w-14 h-14 rounded-full border flex items-center justify-center text-xl ${
+              darkMode 
+                ? 'border-[#333]' 
+                : 'border-[#E5E5E5]'
+            }`}>
               {d.icon}
             </div>
-            <span className="text-[10px] text-gray-500">
+            <span className={`text-[10px] ${
+              darkMode ? 'text-gray-500' : 'text-gray-400'
+            }`}>
               {t(`dimensions.${d.key}`)}
             </span>
           </div>
         ))}
       </div>
 
-      <p className="text-gray-400 italic text-sm leading-relaxed mb-6 max-w-xs">
+      <p className={`italic text-sm leading-relaxed mb-6 max-w-xs ${
+        darkMode ? 'text-gray-400' : 'text-gray-600'
+      }`}>
         {t('welcome.verse')}
       </p>
 
-      <p className="text-[#FF8A00] text-xl font-bold mb-12 max-w-xs leading-snug whitespace-pre-line">
+      <p className={`text-xl font-bold mb-12 max-w-xs leading-snug whitespace-pre-line ${
+        darkMode ? 'text-[#FF8A00]' : 'text-[#FF8A00]'
+      }`}>
         {t('welcome.slogan')}
       </p>
 

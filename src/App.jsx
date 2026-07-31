@@ -151,9 +151,9 @@ function App() {
     setStreaks({ wisdom: 0, physical: 0, spiritual: 0, social: 0, full_day: 0 })
   }
 
-  // Helper: render screen dengan container (max-w-lg lebih lega)
+  // Helper: render screen dengan container + safe area padding
   const renderWithContainer = (Screen, props) => (
-    <div className="max-w-lg mx-auto min-h-screen bg-gray-50 dark:bg-[#0D0D0D]">
+    <div className="max-w-lg mx-auto min-h-screen bg-gray-50 dark:bg-[#0D0D0D] pt-safe">
       <Screen {...props} />
     </div>
   )
@@ -175,10 +175,13 @@ function App() {
   }
 
   if (authStep === 'welcome') {
-    return <WelcomeScreen onBegin={() => setAuthStep('ready')} />
+    return <WelcomeScreen 
+      onBegin={() => setAuthStep('ready')} 
+      darkMode={darkMode} 
+    />
   }
 
-  // NAVIGATION — semua screen dibungkus container max-w-lg
+  // NAVIGATION — semua screen dibungkus container dengan safe area
   if (currentScreen === 'komsel') {
     return renderWithContainer(KomselAttendanceScreen, { onBack: () => setCurrentScreen('home') })
   }
@@ -215,9 +218,9 @@ function App() {
     })
   }
 
-  // HOME — max-w-lg untuk layout lebih lega
+  // HOME — dengan safe area padding
   return (
-    <div className="max-w-lg mx-auto">
+    <div className="max-w-lg mx-auto pt-safe">
       <HomeScreen
         currentUser={currentUser}
         darkMode={darkMode}
