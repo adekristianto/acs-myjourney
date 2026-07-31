@@ -19,9 +19,8 @@ function HomeScreen({
   const userName = currentUser?.nama || 'ACS Congregation'
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-start px-6 pt-14 pb-20 bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white overflow-x-hidden">
+    <div className="min-h-screen flex flex-col items-center px-4 py-4 bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white overflow-x-hidden">
       
-      {/* Container — lebar terbatas seperti Login & Welcome */}
       <div className="w-full max-w-sm">
         
         {/* HEADER */}

@@ -44,25 +44,17 @@ function LoginScreen({ onLoginSuccess }) {
     'transition-all duration-200'
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 pt-12 pb-6 bg-[#F8F8F8] dark:bg-[#0D0D0D]">
+    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-6 bg-[#F8F8F8] dark:bg-[#0D0D0D]">
       
       <div className="w-full max-w-sm">
         
-        {/* LOGO & TITLE */}
-        <div className="mb-10 text-center">
-          <div className="flex justify-center mb-5">
-            <img
-              src="/acs-logo.png"
-              alt="ACS"
-              className="h-14 w-auto object-contain"
-            />
+        <div className="mb-8 text-center">
+          <div className="flex justify-center mb-4">
+            <img src="/acs-logo.png" alt="ACS" className="h-14 w-auto object-contain" />
           </div>
-          <h1 className="text-3xl font-bold text-[#111111] dark:text-white">
-            My Journey
-          </h1>
+          <h1 className="text-3xl font-bold text-[#111111] dark:text-white">My Journey</h1>
         </div>
 
-        {/* FORM */}
         <div className="rounded-2xl p-6 bg-white dark:bg-[#151515]">
           <label className="block text-sm font-medium mb-2 text-[#111111] dark:text-white">
             {t('login.email')}

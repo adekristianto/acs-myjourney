@@ -30,68 +30,56 @@ function WelcomeScreen({ onBegin, darkMode }) {
     return () => { active = false }
   }, [])
 
+  const bgColor = darkMode ? 'bg-[#0D0D0D]' : 'bg-[#F8F8F8]'
+  const textColor = darkMode ? 'text-white' : 'text-[#111111]'
+  const borderColor = darkMode ? 'border-[#333]' : 'border-[#E5E5E5]'
+  const textMuted = darkMode ? 'text-gray-400' : 'text-gray-600'
+  const iconBorder = darkMode ? 'border-[#333]' : 'border-[#E5E5E5]'
+
   return (
-    <div className={`min-h-screen px-6 py-10 flex flex-col items-center justify-center text-center pt-safe ${
-      darkMode 
-        ? 'bg-[#0D0D0D] text-white' 
-        : 'bg-[#F8F8F8] text-[#111111]'
-    }`}>
+    <div className={`min-h-screen flex flex-col items-center justify-center px-4 py-8 text-center ${bgColor} ${textColor}`}>
       
-      {/* BADGE FOUNDING MEMBER */}
-      <div className="h-24 mb-4 flex items-center justify-center">
+      <div className="w-full max-w-sm">
+        
         {checked && isFounding && (
-          <div className="acs-fade-in">
-            <img 
-              src="/founder-badge.png" 
-              alt="Founding Member" 
-              className="w-24 h-24 object-contain"
-            />
+          <div className="flex justify-center mb-6 acs-fade-in">
+            <img src="/founder-badge.png" alt="Founding Member" className="w-24 h-24 object-contain" />
           </div>
         )}
-      </div>
 
-      {/* EMPAT DIMENSI */}
-      <div className="flex gap-3 mb-10">
-        {DIMENSIONS.map((d, i) => (
-          <div
-            key={d.key}
-            className="acs-rise flex flex-col items-center gap-2"
-            style={{ animationDelay: `${i * 120}ms` }}
-          >
-            <div className={`w-14 h-14 rounded-full border flex items-center justify-center text-xl ${
-              darkMode 
-                ? 'border-[#333]' 
-                : 'border-[#E5E5E5]'
-            }`}>
-              {d.icon}
+        <div className="flex justify-center gap-3 mb-8">
+          {DIMENSIONS.map((d, i) => (
+            <div
+              key={d.key}
+              className="acs-rise flex flex-col items-center gap-2"
+              style={{ animationDelay: `${i * 120}ms` }}
+            >
+              <div className={`w-14 h-14 rounded-full border flex items-center justify-center text-xl ${iconBorder}`}>
+                {d.icon}
+              </div>
+              <span className={`text-[10px] ${textMuted}`}>
+                {t(`dimensions.${d.key}`)}
+              </span>
             </div>
-            <span className={`text-[10px] ${
-              darkMode ? 'text-gray-500' : 'text-gray-400'
-            }`}>
-              {t(`dimensions.${d.key}`)}
-            </span>
-          </div>
-        ))}
+          ))}
+        </div>
+
+        <p className={`italic text-sm leading-relaxed mb-6 max-w-xs mx-auto ${textMuted}`}>
+          {t('welcome.verse')}
+        </p>
+
+        <p className="text-[#FF8A00] text-xl font-bold mb-10 leading-snug whitespace-pre-line">
+          {t('welcome.slogan')}
+        </p>
+
+        <button
+          onClick={onBegin}
+          className="w-full py-4 rounded-xl font-semibold text-white bg-[#FF8A00] hover:bg-[#E67A00] active:scale-[0.98] transition-all"
+        >
+          {t('welcome.begin')}
+        </button>
+
       </div>
-
-      <p className={`italic text-sm leading-relaxed mb-6 max-w-xs ${
-        darkMode ? 'text-gray-400' : 'text-gray-600'
-      }`}>
-        {t('welcome.verse')}
-      </p>
-
-      <p className={`text-xl font-bold mb-12 max-w-xs leading-snug whitespace-pre-line ${
-        darkMode ? 'text-[#FF8A00]' : 'text-[#FF8A00]'
-      }`}>
-        {t('welcome.slogan')}
-      </p>
-
-      <button
-        onClick={onBegin}
-        className="w-full max-w-sm py-4 rounded-xl font-semibold text-white bg-[#FF8A00]"
-      >
-        {t('welcome.begin')}
-      </button>
     </div>
   )
 }

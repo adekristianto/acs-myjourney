@@ -7,34 +7,32 @@
     <title>My Journey — ACS</title>
     <meta name="description" content="Perjalanan pertumbuhan 4 dimensi berdasarkan Lukas 2:52" />
 
-    <!-- PWA: WAJIB untuk Add to Home Screen -->
+    <!-- PWA -->
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#111111" />
     <meta name="background-color" content="#0D0D0D" />
 
-    <!-- Android: Chrome Add to Home Screen -->
+    <!-- Android -->
     <meta name="mobile-web-app-capable" content="yes" />
 
-    <!-- iOS: Safari tidak baca manifest, butuh meta sendiri -->
+    <!-- iOS -->
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="My Journey" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <!-- Icon browser -->
+    <!-- Icon -->
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
     <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
 
-    <!-- Preview saat link di-share di WhatsApp -->
+    <!-- OG Preview -->
     <meta property="og:title" content="My Journey — ACS" />
     <meta property="og:description" content="Yesus bertumbuh di 4 area. Mulai hari ini, kita ukur keempatnya." />
     <meta property="og:image" content="/og-image.png" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://acs-myjourney-two.vercel.app" />
 
-    <!-- Safe Area untuk HP notch & status bar -->
     <style>
-      /* Reset & Safe Area */
       * {
         margin: 0;
         padding: 0;
@@ -44,19 +42,20 @@
       html {
         height: 100%;
         width: 100%;
-        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
         background-color: #0D0D0D;
+        -webkit-text-size-adjust: 100%;
       }
 
       body {
         min-height: 100vh;
         min-height: 100dvh;
         width: 100%;
-        padding-top: env(safe-area-inset-top, 44px);
-        padding-bottom: env(safe-area-inset-bottom, 20px);
+        padding-top: env(safe-area-inset-top, 16px);
+        padding-bottom: env(safe-area-inset-bottom, 16px);
         padding-left: env(safe-area-inset-left, 0px);
         padding-right: env(safe-area-inset-right, 0px);
         background-color: #0D0D0D;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
         overscroll-behavior: none;
@@ -70,40 +69,50 @@
         display: flex;
         flex-direction: column;
         background-color: #0D0D0D;
-        padding-top: 8px; /* tambahan padding untuk status bar */
       }
 
-      /* Khusus iOS Safari — tambahan padding untuk notch/status bar */
+      /* iOS Safari khusus */
       @supports (-webkit-touch-callout: none) {
         body {
-          padding-top: max(env(safe-area-inset-top, 44px), 44px) !important;
-        }
-        #root {
-          padding-top: max(env(safe-area-inset-top, 8px), 8px) !important;
+          padding-top: max(env(safe-area-inset-top, 16px), 16px) !important;
+          padding-bottom: max(env(safe-area-inset-bottom, 16px), 16px) !important;
         }
       }
 
-      /* Fallback untuk browser yang tidak support env() */
+      /* Android Chrome */
       @supports (padding: max(0px)) {
         body {
-          padding-left: max(env(safe-area-inset-left), 0px);
-          padding-right: max(env(safe-area-inset-right), 0px);
-          padding-top: max(env(safe-area-inset-top), 44px);
-          padding-bottom: max(env(safe-area-inset-bottom), 20px);
+          padding-top: max(env(safe-area-inset-top), 16px);
+          padding-bottom: max(env(safe-area-inset-bottom), 16px);
         }
       }
 
-      /* Dark mode default untuk seluruh app */
+      .no-bounce {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+        -webkit-tap-highlight-color: transparent;
+      }
+
       .dark {
         background-color: #0D0D0D;
         color: #FFFFFF;
       }
 
-      /* Mencegah scroll bounce di iOS */
-      .no-bounce {
-        overscroll-behavior: none;
-        -webkit-overflow-scrolling: touch;
-        -webkit-tap-highlight-color: transparent;
+      /* Animasi */
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .acs-fade-in {
+        animation: fadeIn 0.6s ease-out forwards;
+      }
+      @keyframes rise {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .acs-rise {
+        animation: rise 0.5s ease-out forwards;
+        opacity: 0;
       }
     </style>
   </head>

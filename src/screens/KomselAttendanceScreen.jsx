@@ -12,29 +12,15 @@ function KomselAttendanceScreen({ onBack }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Ambil user dan daftar jemaat saat component mount
   useEffect(() => {
     async function loadData() {
       setLoading(true)
-      // Ambil user yang login
       const { data: userData } = await getCurrentJemaat()
-      if (userData) {
-        setUser(userData)
-      }
+      if (userData) setUser(userData)
       
-      // Ambil semua jemaat dari database
-      const { data: jemaatList, error } = await getJemaat()
-      if (error) {
-        console.error('❌ Gagal load jemaat:', error)
-      } else if (jemaatList) {
-        // Filter hanya jemaat yang aktif (bisa ditambah filter komsel nanti)
-        // Untuk sekarang, ambil semua dan buat attendance dengan present: false
-        const attendanceData = jemaatList.map(j => ({
-          id: j.id,
-          name: j.nama,
-          present: false
-        }))
-        setAttendance(attendanceData)
+      const { data: jemaatList } = await getJemaat()
+      if (jemaatList) {
+        setAttendance(jemaatList.map(j => ({ id: j.id, name: j.nama, present: false })))
       }
       setLoading(false)
     }
@@ -48,18 +34,10 @@ function KomselAttendanceScreen({ onBack }) {
   }
 
   const handleSave = async () => {
-    if (!user) {
-      alert('❌ Silakan login terlebih dahulu')
-      return
-    }
+    if (!user) { alert('❌ Silakan login terlebih dahulu'); return }
 
     setIsSubmitting(true)
-
-    const anggotaData = attendance.map(a => ({ 
-      name: a.name, 
-      present: a.present 
-    }))
-
+    const anggotaData = attendance.map(a => ({ name: a.name, present: a.present }))
     const presentCount = attendance.filter(a => a.present).length
 
     const { data, error } = await saveKomselAttendance({
@@ -81,55 +59,60 @@ function KomselAttendanceScreen({ onBack }) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0D0D0D]">
-        <p className="text-gray-600 dark:text-gray-400">Memuat data jemaat...</p>
+        <p className="text-gray-600 dark:text-gray-400">Memuat data...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#0D0D0D]">
-      <div className="flex items-center p-4 bg-white dark:bg-[#151515] border-b border-gray-200 dark:border-gray-700">
-        <button onClick={onBack} className="text-2xl mr-3 text-gray-900 dark:text-white">←</button>
-        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('attendance.komsel')}</h1>
-      </div>
-      <div className="p-4">
-        <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">{t('attendance.location')}</label>
-        <select
-          value={location}
-          onChange={(e) => setLocation(e.target.value)}
-          className="w-full p-3 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#151515] text-gray-900 dark:text-white"
-        >
-          <option value="Storehouse">Storehouse (Gereja)</option>
-          <option value="Rumah Andi">Rumah Andi</option>
-          <option value="Rumah Budi">Rumah Budi</option>
-          <option value="Online">Online (Zoom)</option>
-        </select>
-      </div>
-      <div className="p-4 space-y-2">
-        <p className="text-sm mb-2 text-gray-500 dark:text-gray-400">
-          {t('attendance.tapToMark')} ({attendance.length} jemaat)
-        </p>
-        {attendance.map((member, index) => (
-          <AttendanceRow
-            key={member.id || index}
-            name={member.name}
-            isPresent={member.present}
-            onToggle={() => togglePresent(index)}
-          />
-        ))}
-      </div>
-      <div className="p-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white">
+      <div className="max-w-sm mx-auto px-4 py-4">
+        
+        <div className="flex items-center py-3">
+          <button onClick={onBack} className="text-2xl mr-3 text-gray-900 dark:text-white">←</button>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('attendance.komsel')}</h1>
+        </div>
+
+        <div className="mt-4">
+          <label className="block text-sm font-medium mb-2 text-gray-700 dark:text-gray-300">{t('attendance.location')}</label>
+          <select
+            value={location}
+            onChange={(e) => setLocation(e.target.value)}
+            className="w-full p-4 rounded-xl border border-gray-300 dark:border-gray-700 bg-white dark:bg-[#151515] text-gray-900 dark:text-white text-base"
+          >
+            <option value="Storehouse">Storehouse (Gereja)</option>
+            <option value="Rumah Andi">Rumah Andi</option>
+            <option value="Rumah Budi">Rumah Budi</option>
+            <option value="Online">Online (Zoom)</option>
+          </select>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          <p className="text-sm mb-2 text-gray-500 dark:text-gray-400">
+            {t('attendance.tapToMark')} ({attendance.length} jemaat)
+          </p>
+          {attendance.map((member, index) => (
+            <AttendanceRow
+              key={member.id || index}
+              name={member.name}
+              isPresent={member.present}
+              onToggle={() => togglePresent(index)}
+            />
+          ))}
+        </div>
+
         <button
           onClick={handleSave}
           disabled={isSubmitting}
-          className={`w-full py-3 rounded-lg font-medium text-white transition-colors ${
+          className={`w-full mt-6 py-4 rounded-xl font-semibold text-white transition-all ${
             isSubmitting 
               ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-[#FF8A00] hover:bg-[#E67A00]'
+              : 'bg-[#FF8A00] hover:bg-[#E67A00] active:scale-[0.98]'
           }`}
         >
           {isSubmitting ? '⏳ ' + t('attendance.saving') : '💾 ' + t('attendance.save')}
         </button>
+
       </div>
     </div>
   )
