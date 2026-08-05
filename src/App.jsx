@@ -7,7 +7,7 @@ import {
   updateStreak, 
   needsPasswordChange, 
   logoutJemaat,
-  isRecoveryLink   // ← HARUS ADA
+  isRecoveryLink
 } from './services/database'
 import LoginScreen from './screens/LoginScreen'
 import SetPasswordScreen from './screens/SetPasswordScreen'
@@ -45,53 +45,54 @@ function App() {
     full_day: 0
   })
 
-  // CEK SESSION
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-    }
-
-    const checkSession = async () => {
-      const { data } = await getCurrentJemaat()
-      if (data) {
-        setCurrentUser(data)
-        await loadTodayStatus(data.id)
-      }
-      setAuthLoading(false)
-    }
-    checkSession()
-  }, [])
-
   // LOAD STATUS HARI INI (dari journal, BUKAN streak)
   const loadTodayStatus = async (jemaatId) => {
     if (!jemaatId) return
 
+    console.log('🔍 loadTodayStatus called for:', jemaatId)
+
     const dims = ['wisdom', 'physical', 'spiritual', 'social']
     const todayStatus = {}
     const today = new Date().toISOString().split('T')[0]
+    console.log('📅 Today:', today)
 
     for (const dim of dims) {
       const { data, error } = await getTodayJournal(jemaatId, dim)
+      console.log(`📖 ${dim}:`, { 
+        data, 
+        error, 
+        tanggal: data?.tanggal, 
+        isToday: data?.tanggal === today 
+      })
       const hasTodayJournal = data && data.tanggal === today
       todayStatus[dim] = !error && hasTodayJournal
     }
 
-    setDimensions(prev =>
-      prev.map(dim => ({
+    console.log('📊 todayStatus:', todayStatus)
+
+    setDimensions(prev => {
+      const newDimensions = prev.map(dim => ({
         ...dim,
         completed: todayStatus[dim.id] || false
       }))
-    )
+      console.log('📊 setDimensions called, newDimensions:', newDimensions)
+      return newDimensions
+    })
 
     const { data: streakData } = await getStreaks(jemaatId)
     if (streakData) {
+      console.log('📊 Streaks loaded:', streakData)
       setStreaks(streakData)
     }
+    
+    console.log('✅ loadTodayStatus done')
   }
 
   // UPDATE STREAK SETELAH SUBMIT JOURNAL
   const updateStreakAfterJournal = async (dimensionId) => {
     if (!currentUser) return
+
+    console.log('🔄 updateStreakAfterJournal called for:', dimensionId)
 
     const currentStreak = streaks[dimensionId] || 0
     const newStreak = currentStreak + 1
@@ -104,7 +105,9 @@ function App() {
       return
     }
 
+    console.log('✅ Streak updated, calling loadTodayStatus...')
     await loadTodayStatus(currentUser.id)
+    console.log('✅ loadTodayStatus done')
 
     setStreaks(prev => ({
       ...prev,
@@ -118,13 +121,37 @@ function App() {
     }))
   }
 
+  // CEK SESSION
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark')
+    }
+
+    const checkSession = async () => {
+      const { data } = await getCurrentJemaat()
+      if (data) {
+        // Set user dulu
+        setCurrentUser(data)
+        // Lalu load status (pastikan selesai sebelum UI render)
+        await loadTodayStatus(data.id)
+      }
+      setAuthLoading(false)
+    }
+    checkSession()
+  }, [])
+
   const toggleDarkMode = () => {
     setDarkMode(!darkMode)
     document.documentElement.classList.toggle('dark')
   }
 
   const handleLoginSuccess = (user) => {
+    // User akan di-set dan status di-load di useEffect
+    // Tapi karena useEffect tidak otomatis jalan setelah login,
+    // kita perlu reload status di sini
     setCurrentUser(user)
+    // Load status setelah user set
+    loadTodayStatus(user.id)
     setCurrentScreen('home')
     setAuthStep(needsPasswordChange(user) ? 'setPassword' : 'welcome')
   }
@@ -195,7 +222,7 @@ function App() {
     />
   }
 
-  // NAVIGATION — semua screen dibungkus container dengan safe area
+  // NAVIGATION
   if (currentScreen === 'komsel') {
     return renderWithContainer(KomselAttendanceScreen, { onBack: () => setCurrentScreen('home') })
   }
@@ -232,7 +259,7 @@ function App() {
     })
   }
 
-  // HOME — dengan safe area padding
+  // HOME
   return (
     <div className="max-w-lg mx-auto pt-safe">
       <HomeScreen

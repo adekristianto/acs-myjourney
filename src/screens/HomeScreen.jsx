@@ -14,7 +14,9 @@ function HomeScreen({
   onLogout
 }) {
   const { t, locale, toggleLocale } = useTranslation()
-  const completedCount = streaks?.full_day || dimensions.filter(d => d.completed).length
+  
+  // ✅ PERBAIKAN: completedCount dari dimensions (status hari ini), BUKAN dari streaks.full_day
+  const completedCount = dimensions.filter(d => d.completed).length
 
   const userName = currentUser?.nama || 'ACS Congregation'
 
@@ -57,7 +59,7 @@ function HomeScreen({
           </div>
         </div>
 
-        {/* STREAK */}
+        {/* STREAK — menampilkan jumlah dimensi yang sudah diisi HARI INI */}
         <div className="p-4 rounded-lg text-center bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-700 mb-4">
           <p className="text-2xl font-bold text-[#FF8A00]">
             {t('home.streak').replace('{count}', completedCount)}

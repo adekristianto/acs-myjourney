@@ -89,6 +89,8 @@ export async function getTodayJournal(jemaatId, dimension) {
     .eq('jemaat_id', jemaatId)
     .eq('dimension_type', dimension)
     .eq('tanggal', today)
+    .order('created_at', { ascending: false })
+    .limit(1)
     .maybeSingle()
   return { data, error }
 }
