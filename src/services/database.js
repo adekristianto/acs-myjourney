@@ -238,6 +238,23 @@ export async function updatePassword(newPassword) {
   return { data, error }
 }
 
+// Kirim email link reset password (self-service "Lupa Password")
+export async function sendPasswordReset(email) {
+  const redirectTo = `${window.location.origin}/?reset=1`
+  const { data, error } = await supabase.auth.resetPasswordForEmail(
+    email.trim().toLowerCase(),
+    { redirectTo }
+  )
+  return { data, error }
+}
+
+// Cek apakah URL saat ini adalah link recovery dari email
+export function isRecoveryLink() {
+  const hash = window.location.hash || ''
+  const search = window.location.search || ''
+  return hash.includes('type=recovery') || search.includes('reset=1')
+}
+
 export function needsPasswordChange(user) {
   return user?.user_metadata?.password_changed !== true
 }

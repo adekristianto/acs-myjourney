@@ -80,7 +80,7 @@
     "save": "Simpan & Lanjut"
   },
   "welcome": {
-    "founding": "★ SATU DARI 11 YANG PERTAMA",
+    "founding": "★ SATU DARI 14 YANG PERTAMA",
     "verse": "\"Dan Yesus makin bertambah besar dan bertambah hikmat-Nya dan besar-Nya, dan makin dikasihi oleh Allah dan manusia.\" — Lukas 2:52",
     "slogan": "Selama ini kita hanya mengukur satu.\nMulai hari ini, empat.",
     "begin": "Mulai"
@@ -88,6 +88,17 @@
   "common": {
     "loading": "Mohon tunggu...",
     "signingIn": "Sedang masuk...",
-    "saving": "Menyimpan..."
-  }
+    "saving": "Menyimpan...",
+    "sending": "Mengirim..."
+  },
+  "forgot": {
+    "title": "Lupa kata sandi?",
+    "sub": "Masukkan email kamu. Kami kirim link untuk membuat kata sandi baru.",
+    "button": "Kirim link reset",
+    "backToLogin": "Kembali ke halaman masuk",
+    "errorEmpty": "Mohon masukkan email kamu.",
+    "sentTitle": "Cek email kamu",
+    "sentBody": "Kalau email itu terdaftar, link reset sedang dikirim. Buka link-nya dan buat kata sandi baru. Jangan lupa cek folder spam."
+  },
+  "forgotLink": "Lupa kata sandi?"
 }

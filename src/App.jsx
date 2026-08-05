@@ -10,6 +10,7 @@ import {
 } from './services/database'
 import LoginScreen from './screens/LoginScreen'
 import SetPasswordScreen from './screens/SetPasswordScreen'
+import ForgotPasswordScreen from './screens/ForgotPasswordScreen'
 import WelcomeScreen from './screens/WelcomeScreen'
 import HomeScreen from './screens/HomeScreen'
 import BibleJournalScreen from './screens/BibleJournalScreen'
@@ -25,6 +26,7 @@ function App() {
   const [authLoading, setAuthLoading] = useState(true)
   const [currentScreen, setCurrentScreen] = useState('home')
   const [authStep, setAuthStep] = useState('ready')
+  const [showForgot, setShowForgot] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
@@ -166,8 +168,19 @@ function App() {
     )
   }
 
+  // Datang dari link reset email -> langsung minta buat password baru
+  if (isRecoveryLink() && authStep !== 'welcome') {
+    return <SetPasswordScreen onComplete={() => { window.location.hash=''; setAuthStep('ready') }} />
+  }
+
   if (!currentUser) {
-    return <LoginScreen onLoginSuccess={handleLoginSuccess} />
+    if (showForgot) {
+      return <ForgotPasswordScreen onBack={() => setShowForgot(false)} />
+    }
+    return <LoginScreen
+      onLoginSuccess={handleLoginSuccess}
+      onForgot={() => setShowForgot(true)}
+    />
   }
 
   if (authStep === 'setPassword') {

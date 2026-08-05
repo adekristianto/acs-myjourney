@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { loginJemaat } from '../services/database'
 import { useTranslation } from '../hooks/useTranslation'
 
-function LoginScreen({ onLoginSuccess }) {
+function LoginScreen({ onLoginSuccess, onForgot }) {
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -100,6 +100,12 @@ function LoginScreen({ onLoginSuccess }) {
         <p className="text-xs text-center mt-6 text-[#666666] dark:text-[#999999]">
           {t('login.helper')}
         </p>
+        <button
+          onClick={onForgot}
+          className="w-full text-center text-sm mt-4 text-[#FF8A00] underline"
+        >
+          {t('forgotLink')}
+        </button>
         
       </div>
     </div>
