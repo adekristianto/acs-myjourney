@@ -6,7 +6,8 @@ import {
   getTodayJournal,
   updateStreak, 
   needsPasswordChange, 
-  logoutJemaat 
+  logoutJemaat,
+  isRecoveryLink   // ← HARUS ADA
 } from './services/database'
 import LoginScreen from './screens/LoginScreen'
 import SetPasswordScreen from './screens/SetPasswordScreen'
