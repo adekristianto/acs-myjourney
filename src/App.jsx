@@ -44,55 +44,39 @@ function App() {
     social: 0,
     full_day: 0
   })
+  // State untuk recovery mode
+  const [isRecovery, setIsRecovery] = useState(false)
 
-  // LOAD STATUS HARI INI (dari journal, BUKAN streak)
+  // LOAD STATUS HARI INI
   const loadTodayStatus = async (jemaatId) => {
     if (!jemaatId) return
-
-    console.log('🔍 loadTodayStatus called for:', jemaatId)
 
     const dims = ['wisdom', 'physical', 'spiritual', 'social']
     const todayStatus = {}
     const today = new Date().toISOString().split('T')[0]
-    console.log('📅 Today:', today)
 
     for (const dim of dims) {
       const { data, error } = await getTodayJournal(jemaatId, dim)
-      console.log(`📖 ${dim}:`, { 
-        data, 
-        error, 
-        tanggal: data?.tanggal, 
-        isToday: data?.tanggal === today 
-      })
       const hasTodayJournal = data && data.tanggal === today
       todayStatus[dim] = !error && hasTodayJournal
     }
 
-    console.log('📊 todayStatus:', todayStatus)
-
-    setDimensions(prev => {
-      const newDimensions = prev.map(dim => ({
+    setDimensions(prev =>
+      prev.map(dim => ({
         ...dim,
         completed: todayStatus[dim.id] || false
       }))
-      console.log('📊 setDimensions called, newDimensions:', newDimensions)
-      return newDimensions
-    })
+    )
 
     const { data: streakData } = await getStreaks(jemaatId)
     if (streakData) {
-      console.log('📊 Streaks loaded:', streakData)
       setStreaks(streakData)
     }
-    
-    console.log('✅ loadTodayStatus done')
   }
 
   // UPDATE STREAK SETELAH SUBMIT JOURNAL
   const updateStreakAfterJournal = async (dimensionId) => {
     if (!currentUser) return
-
-    console.log('🔄 updateStreakAfterJournal called for:', dimensionId)
 
     const currentStreak = streaks[dimensionId] || 0
     const newStreak = currentStreak + 1
@@ -105,9 +89,7 @@ function App() {
       return
     }
 
-    console.log('✅ Streak updated, calling loadTodayStatus...')
     await loadTodayStatus(currentUser.id)
-    console.log('✅ loadTodayStatus done')
 
     setStreaks(prev => ({
       ...prev,
@@ -123,17 +105,31 @@ function App() {
 
   // CEK SESSION
   useEffect(() => {
+    console.log('🔍 App mounted, checking session...')
+    console.log('🔍 URL:', window.location.href)
+    console.log('🔍 isRecoveryLink:', isRecoveryLink())
+
     if (darkMode) {
       document.documentElement.classList.add('dark')
     }
 
+    // CEK APAKAH INI RECOVERY LINK — PALING PERTAMA!
+    if (isRecoveryLink()) {
+      console.log('🔐 RECOVERY LINK DETECTED! Redirecting to SetPasswordScreen')
+      setIsRecovery(true)
+      setAuthLoading(false)
+      return
+    }
+
     const checkSession = async () => {
+      console.log('🔍 Checking normal session...')
       const { data } = await getCurrentJemaat()
       if (data) {
-        // Set user dulu
+        console.log('✅ User found:', data.nama)
         setCurrentUser(data)
-        // Lalu load status (pastikan selesai sebelum UI render)
         await loadTodayStatus(data.id)
+      } else {
+        console.log('ℹ️ No user session found')
       }
       setAuthLoading(false)
     }
@@ -146,11 +142,7 @@ function App() {
   }
 
   const handleLoginSuccess = (user) => {
-    // User akan di-set dan status di-load di useEffect
-    // Tapi karena useEffect tidak otomatis jalan setelah login,
-    // kita perlu reload status di sini
     setCurrentUser(user)
-    // Load status setelah user set
     loadTodayStatus(user.id)
     setCurrentScreen('home')
     setAuthStep(needsPasswordChange(user) ? 'setPassword' : 'welcome')
@@ -181,13 +173,29 @@ function App() {
     setStreaks({ wisdom: 0, physical: 0, spiritual: 0, social: 0, full_day: 0 })
   }
 
-  // Helper: render screen dengan container + safe area padding
+  // Handler setelah selesai reset password
+  const handlePasswordResetComplete = async () => {
+    console.log('✅ Password reset complete!')
+    // Clear hash & query params dari URL
+    window.history.replaceState(null, '', window.location.pathname)
+    setIsRecovery(false)
+    setAuthStep('ready')
+    // Reload user session setelah reset
+    const { data } = await getCurrentJemaat()
+    if (data) {
+      console.log('✅ User reloaded:', data.nama)
+      setCurrentUser(data)
+      await loadTodayStatus(data.id)
+    }
+  }
+
   const renderWithContainer = (Screen, props) => (
     <div className="max-w-lg mx-auto min-h-screen bg-gray-50 dark:bg-[#0D0D0D] pt-safe">
       <Screen {...props} />
     </div>
   )
 
+  // LOADING
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0D0D0D]">
@@ -196,11 +204,14 @@ function App() {
     )
   }
 
-  // Datang dari link reset email -> langsung minta buat password baru
-  if (isRecoveryLink() && authStep !== 'welcome') {
-    return <SetPasswordScreen onComplete={() => { window.location.hash=''; setAuthStep('ready') }} />
+  // ⭐ PRIORITAS TERTINGGI: RECOVERY LINK
+  // Harus di atas semua kondisi lain (termasuk !currentUser)
+  if (isRecovery || isRecoveryLink()) {
+    console.log('🔐 Rendering SetPasswordScreen for recovery')
+    return <SetPasswordScreen onComplete={handlePasswordResetComplete} />
   }
 
+  // LOGIN / FORGOT PASSWORD
   if (!currentUser) {
     if (showForgot) {
       return <ForgotPasswordScreen onBack={() => setShowForgot(false)} />
@@ -211,10 +222,12 @@ function App() {
     />
   }
 
+  // SET PASSWORD (first login)
   if (authStep === 'setPassword') {
     return <SetPasswordScreen onComplete={() => setAuthStep('welcome')} />
   }
 
+  // WELCOME SCREEN
   if (authStep === 'welcome') {
     return <WelcomeScreen 
       onBegin={() => setAuthStep('ready')} 

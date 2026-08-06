@@ -1,6 +1,6 @@
 // screens/SetPasswordScreen.jsx
-import { useState } from 'react'
-import { updatePassword } from '../services/database'
+import { useState, useEffect } from 'react'
+import { updatePassword, waitForRecoverySession, isRecoveryLink } from '../services/database'
 import { useTranslation } from '../hooks/useTranslation'
 
 function SetPasswordScreen({ onComplete }) {
@@ -10,6 +10,23 @@ function SetPasswordScreen({ onComplete }) {
   const [showPass, setShowPass] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [sessionReady, setSessionReady] = useState(!isRecoveryLink())
+  const [checking, setChecking] = useState(isRecoveryLink())
+
+  useEffect(() => {
+    if (!isRecoveryLink()) return
+    let alive = true
+    ;(async () => {
+      const { ready } = await waitForRecoverySession()
+      if (!alive) return
+      setSessionReady(ready)
+      setChecking(false)
+      if (!ready) {
+        setError('Link reset sudah kedaluwarsa atau tidak valid. Minta link baru dari halaman "Lupa kata sandi?".')
+      }
+    })()
+    return () => { alive = false }
+  }, [])
 
   const tooShort = pass.length > 0 && pass.length < 8
   const notMatch = confirm.length > 0 && pass !== confirm
@@ -24,7 +41,12 @@ function SetPasswordScreen({ onComplete }) {
     setLoading(false)
 
     if (updateError || !data?.user) {
-      setError(t('set_pass.error_failed'))
+      const msg = updateError?.message || ''
+      if (/session|JWT|token|not authenticated/i.test(msg)) {
+        setError('Sesi reset tidak ditemukan. Link mungkin sudah dipakai atau kedaluwarsa — minta link baru.')
+      } else {
+        setError(msg || t('set_pass.error_failed'))
+      }
       return
     }
     onComplete()
@@ -88,10 +110,10 @@ function SetPasswordScreen({ onComplete }) {
 
         <button
           onClick={handleSubmit}
-          disabled={loading || !isValid}
+          disabled={loading || !isValid || checking || !sessionReady}
           className="w-full py-4 rounded-xl font-semibold text-white bg-[#FF8A00] disabled:opacity-50 transition-all hover:bg-[#E67A00] active:scale-[0.98]"
         >
-          {loading ? t('common.saving') : t('set_pass.save')}
+          {checking ? 'Memeriksa link…' : loading ? t('common.saving') : t('set_pass.save')}
         </button>
 
       </div>

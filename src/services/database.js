@@ -242,7 +242,8 @@ export async function updatePassword(newPassword) {
 
 // Kirim email link reset password (self-service "Lupa Password")
 export async function sendPasswordReset(email) {
-  const redirectTo = `${window.location.origin}/?reset=1`
+  // Gunakan URL dengan parameter reset=1 agar app bisa mendeteksi
+  const redirectTo = `${window.location.origin}/?reset=1&type=recovery`
   const { data, error } = await supabase.auth.resetPasswordForEmail(
     email.trim().toLowerCase(),
     { redirectTo }
@@ -254,7 +255,68 @@ export async function sendPasswordReset(email) {
 export function isRecoveryLink() {
   const hash = window.location.hash || ''
   const search = window.location.search || ''
-  return hash.includes('type=recovery') || search.includes('reset=1')
+  const fullUrl = window.location.href || ''
+  
+  console.log('🔍 isRecoveryLink check:')
+  console.log('  - hash:', hash)
+  console.log('  - search:', search)
+  console.log('  - fullUrl:', fullUrl)
+  
+  // Deteksi berbagai format recovery link
+  const isRecovery = (
+    // Hash format (Supabase default)
+    hash.includes('type=recovery') ||
+    hash.includes('access_token') ||
+    // Search parameter format
+    search.includes('type=recovery') ||
+    search.includes('access_token') ||
+    search.includes('reset=1') ||
+    search.includes('code=') ||
+    // URL string match
+    fullUrl.includes('#access_token') ||
+    fullUrl.includes('?type=recovery')
+  )
+  
+  console.log('  - result:', isRecovery)
+  return isRecovery
+}
+
+// Tunggu sampai Supabase selesai memproses link recovery dan sesi terbentuk.
+// Ini KUNCI: updateUser() akan GAGAL kalau sesi belum ada.
+export async function waitForRecoverySession(timeoutMs = 8000) {
+  console.log('⏳ waitForRecoverySession started...')
+  
+  // 1. Cek apakah sesi sudah ada
+  const { data: { session } } = await supabase.auth.getSession()
+  if (session) {
+    console.log('✅ Session already exists:', session.user.email)
+    return { ready: true, session }
+  }
+
+  // 2. Kalau belum, tunggu event dari Supabase
+  return new Promise((resolve) => {
+    let done = false
+    const finish = (result) => {
+      if (done) return
+      done = true
+      try { sub?.data?.subscription?.unsubscribe() } catch (e) {}
+      clearTimeout(timer)
+      console.log('⏳ waitForRecoverySession result:', result)
+      resolve(result)
+    }
+
+    const sub = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 Auth event:', event, session?.user?.email)
+      if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || session) {
+        finish({ ready: true, session })
+      }
+    })
+
+    const timer = setTimeout(async () => {
+      const { data: { session: s2 } } = await supabase.auth.getSession()
+      finish(s2 ? { ready: true, session: s2 } : { ready: false, session: null })
+    }, timeoutMs)
+  })
 }
 
 export function needsPasswordChange(user) {
