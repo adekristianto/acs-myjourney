@@ -32,7 +32,6 @@ function WelcomeScreen({ onBegin, darkMode }) {
 
   const bgColor = darkMode ? 'bg-[#0D0D0D]' : 'bg-[#F8F8F8]'
   const textColor = darkMode ? 'text-white' : 'text-[#111111]'
-  const borderColor = darkMode ? 'border-[#333]' : 'border-[#E5E5E5]'
   const textMuted = darkMode ? 'text-gray-400' : 'text-gray-600'
   const iconBorder = darkMode ? 'border-[#333]' : 'border-[#E5E5E5]'
 
@@ -64,11 +63,11 @@ function WelcomeScreen({ onBegin, darkMode }) {
           ))}
         </div>
 
-        <p className={`italic text-sm leading-relaxed mb-6 max-w-xs mx-auto ${textMuted}`}>
+        <p className={`italic text-sm leading-relaxed mb-6 max-w-xs mx-auto text-center ${textMuted}`}>
           {t('welcome.verse')}
         </p>
 
-        <p className="text-[#FF8A00] text-xl font-bold mb-10 leading-snug whitespace-pre-line">
+        <p className="text-[#FF8A00] text-xl font-bold mb-10 max-w-xs mx-auto text-center leading-snug whitespace-pre-line">
           {t('welcome.slogan')}
         </p>
 
