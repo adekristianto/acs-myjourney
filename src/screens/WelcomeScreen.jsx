@@ -63,11 +63,11 @@ function WelcomeScreen({ onBegin, darkMode }) {
           ))}
         </div>
 
-        <p className={`italic text-sm leading-relaxed mb-6 max-w-xs mx-auto text-center ${textMuted}`}>
+        <p className={`italic text-sm leading-relaxed mb-6 px-2 text-center ${textMuted}`}>
           {t('welcome.verse')}
         </p>
 
-        <p className="text-[#FF8A00] text-xl font-bold mb-10 max-w-xs mx-auto text-center leading-snug whitespace-pre-line">
+        <p className="text-[#FF8A00] text-xl font-bold mb-10 px-2 text-center leading-snug whitespace-pre-line">
           {t('welcome.slogan')}
         </p>
 
