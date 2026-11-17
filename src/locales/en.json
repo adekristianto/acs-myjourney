@@ -4,7 +4,7 @@
     "greeting": "Hi, ACS Congregation!"
   },
   "home": {
-    "streak": "🔥 {count}/4 days",
+    "streak": "🔥 {count}/4 dimensions",
     "complete": "🎉 Complete! All dimensions filled!",
     "incomplete": "Keep your consistency!",
     "notStarted": "⏳ Not started yet",
