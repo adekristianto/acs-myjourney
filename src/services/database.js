@@ -2,18 +2,39 @@
 import { supabase } from '../supabaseClient'
 
 // ============================================
+// HELPER: TANGGAL WIB
+// ============================================
+
+// Fungsi helper untuk mendapatkan tanggal hari ini dalam WIB
+export function getTodayWIB() {
+  return new Date().toLocaleDateString('en-CA', { 
+    timeZone: 'Asia/Jakarta' 
+  }) // Format: YYYY-MM-DD
+}
+
+// Fungsi helper untuk mendapatkan tanggal kemarin dalam WIB
+function getYesterdayWIB() {
+  const yesterday = new Date()
+  yesterday.setDate(yesterday.getDate() - 1)
+  return yesterday.toLocaleDateString('en-CA', { 
+    timeZone: 'Asia/Jakarta' 
+  })
+}
+
+// ============================================
 // JEMAAT
 // ============================================
 
-// Ambil semua jemaat (untuk attendance list)
+// Ambil semua jemaat (HANYA id & nama — untuk keamanan)
 export async function getJemaat() {
   const { data, error } = await supabase
     .from('jemaat')
-    .select('*')
+    .select('id, nama')
     .order('nama', { ascending: true })
   return { data, error }
 }
 
+// Ambil data lengkap (untuk profile sendiri, butuh email & komsel)
 export async function getJemaatByEmail(email) {
   const { data, error } = await supabase
     .from('jemaat')
@@ -56,7 +77,7 @@ export async function saveJournal({ jemaatId, dimension, content, entryDate }) {
       jemaat_id: jemaatId,
       dimension_type: dimension,
       content: content,
-      tanggal: entryDate || new Date().toISOString().split('T')[0]
+      tanggal: entryDate || getTodayWIB()  // ← Pakai WIB
     }])
     .select()
   return { data, error }
@@ -82,7 +103,7 @@ export async function getJournalsByDimension(jemaatId, dimension) {
 }
 
 export async function getTodayJournal(jemaatId, dimension) {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayWIB()  // ← Pakai WIB
   const { data, error } = await supabase
     .from('journals')
     .select('*')
@@ -96,7 +117,7 @@ export async function getTodayJournal(jemaatId, dimension) {
 }
 
 // ============================================
-// STREAKS
+// STREAKS — PERBAIKAN: PER HARI, BUKAN +1 SETIAP SIMPAN
 // ============================================
 
 export async function getStreaks(jemaatId) {
@@ -134,19 +155,57 @@ export async function getStreaks(jemaatId) {
   return { data: streaks, error: null }
 }
 
+// PERBAIKAN: Streak dihitung per hari berturut-turut
+// - Isi 2x sehari = tetap +1 (bukan +2)
+// - Bolong sehari = reset ke 1
+// - longest_streak tidak boleh turun
 export async function updateStreak(jemaatId, dimensionType, streakValue) {
+  const today = getTodayWIB()
+  const yesterday = getYesterdayWIB()
+  
+  // 1. Ambil streak yang ada
+  const { data: existing } = await supabase
+    .from('streaks')
+    .select('*')
+    .eq('jemaat_id', jemaatId)
+    .eq('dimension_type', dimensionType)
+    .maybeSingle()
+  
+  // 2. Kalau sudah update hari ini, jangan tambah lagi
+  if (existing && existing.last_update === today) {
+    return { data: existing, error: null }
+  }
+  
+  // 3. Hitung streak baru
+  let newStreak = 1
+  let longestStreak = existing?.longest_streak || 0
+  
+  if (existing) {
+    if (existing.last_update === yesterday) {
+      // Lanjut streak (kemarin sudah isi)
+      newStreak = (existing.current_streak || 0) + 1
+    } else {
+      // Bolong sehari atau lebih → reset ke 1
+      newStreak = 1
+    }
+    // longest_streak tidak boleh turun
+    longestStreak = Math.max(newStreak, longestStreak)
+  }
+  
+  // 4. Upsert
   const { data, error } = await supabase
     .from('streaks')
     .upsert({
       jemaat_id: jemaatId,
       dimension_type: dimensionType,
-      current_streak: streakValue,
-      longest_streak: streakValue,
-      last_update: new Date().toISOString().split('T')[0]
+      current_streak: newStreak,
+      longest_streak: longestStreak,
+      last_update: today
     }, {
       onConflict: 'jemaat_id, dimension_type'
     })
     .select()
+  
   return { data, error }
 }
 
@@ -158,7 +217,7 @@ export async function saveKomselAttendance({ lokasi, anggota, tanggal }) {
   const { data, error } = await supabase
     .from('komsel_attendance')
     .insert([{
-      tanggal: tanggal || new Date().toISOString().split('T')[0],
+      tanggal: tanggal || getTodayWIB(),
       lokasi: lokasi || 'Storehouse',
       anggota: anggota || []
     }])
@@ -170,7 +229,7 @@ export async function getKomselAttendance(tanggal) {
   const { data, error } = await supabase
     .from('komsel_attendance')
     .select('*')
-    .eq('tanggal', tanggal || new Date().toISOString().split('T')[0])
+    .eq('tanggal', tanggal || getTodayWIB())
   return { data, error }
 }
 
@@ -178,7 +237,7 @@ export async function getKomselAttendanceByTanggal(tanggal) {
   const { data, error } = await supabase
     .from('komsel_attendance')
     .select('*')
-    .eq('tanggal', tanggal || new Date().toISOString().split('T')[0])
+    .eq('tanggal', tanggal || getTodayWIB())
     .maybeSingle()
   return { data, error }
 }
@@ -191,7 +250,7 @@ export async function saveWorkerAttendance({ anggota, meetingDate }) {
   const { data, error } = await supabase
     .from('worker_attendance')
     .insert([{
-      tanggal: meetingDate || new Date().toISOString().split('T')[0],
+      tanggal: meetingDate || getTodayWIB(),
       anggota: anggota || []
     }])
     .select()
@@ -202,7 +261,7 @@ export async function getWorkerAttendance(tanggal) {
   const { data, error } = await supabase
     .from('worker_attendance')
     .select('*')
-    .eq('tanggal', tanggal || new Date().toISOString().split('T')[0])
+    .eq('tanggal', tanggal || getTodayWIB())
   return { data, error }
 }
 
@@ -210,7 +269,7 @@ export async function getWorkerAttendanceByTanggal(tanggal) {
   const { data, error } = await supabase
     .from('worker_attendance')
     .select('*')
-    .eq('tanggal', tanggal || new Date().toISOString().split('T')[0])
+    .eq('tanggal', tanggal || getTodayWIB())
     .maybeSingle()
   return { data, error }
 }
@@ -240,9 +299,8 @@ export async function updatePassword(newPassword) {
   return { data, error }
 }
 
-// Kirim email link reset password (self-service "Lupa Password")
+// Kirim email link reset password
 export async function sendPasswordReset(email) {
-  // Gunakan URL dengan parameter reset=1 agar app bisa mendeteksi
   const redirectTo = `${window.location.origin}/?reset=1&type=recovery`
   const { data, error } = await supabase.auth.resetPasswordForEmail(
     email.trim().toLowerCase(),
@@ -252,48 +310,29 @@ export async function sendPasswordReset(email) {
 }
 
 // Cek apakah URL saat ini adalah link recovery dari email
+// PERBAIKAN: Tidak ada console.log URL (keamanan)
 export function isRecoveryLink() {
   const hash = window.location.hash || ''
   const search = window.location.search || ''
   const fullUrl = window.location.href || ''
   
-  console.log('🔍 isRecoveryLink check:')
-  console.log('  - hash:', hash)
-  console.log('  - search:', search)
-  console.log('  - fullUrl:', fullUrl)
-  
-  // Deteksi berbagai format recovery link
-  const isRecovery = (
-    // Hash format (Supabase default)
+  return (
     hash.includes('type=recovery') ||
     hash.includes('access_token') ||
-    // Search parameter format
     search.includes('type=recovery') ||
     search.includes('access_token') ||
     search.includes('reset=1') ||
     search.includes('code=') ||
-    // URL string match
     fullUrl.includes('#access_token') ||
     fullUrl.includes('?type=recovery')
   )
-  
-  console.log('  - result:', isRecovery)
-  return isRecovery
 }
 
-// Tunggu sampai Supabase selesai memproses link recovery dan sesi terbentuk.
-// Ini KUNCI: updateUser() akan GAGAL kalau sesi belum ada.
+// Tunggu sampai Supabase selesai memproses link recovery dan sesi terbentuk
 export async function waitForRecoverySession(timeoutMs = 8000) {
-  console.log('⏳ waitForRecoverySession started...')
-  
-  // 1. Cek apakah sesi sudah ada
   const { data: { session } } = await supabase.auth.getSession()
-  if (session) {
-    console.log('✅ Session already exists:', session.user.email)
-    return { ready: true, session }
-  }
+  if (session) return { ready: true, session }
 
-  // 2. Kalau belum, tunggu event dari Supabase
   return new Promise((resolve) => {
     let done = false
     const finish = (result) => {
@@ -301,12 +340,10 @@ export async function waitForRecoverySession(timeoutMs = 8000) {
       done = true
       try { sub?.data?.subscription?.unsubscribe() } catch (e) {}
       clearTimeout(timer)
-      console.log('⏳ waitForRecoverySession result:', result)
       resolve(result)
     }
 
     const sub = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Auth event:', event, session?.user?.email)
       if (event === 'PASSWORD_RECOVERY' || event === 'SIGNED_IN' || session) {
         finish({ ready: true, session })
       }
