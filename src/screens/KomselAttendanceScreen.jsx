@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react'
 import AttendanceRow from '../components/AttendanceRow'
 import { useTranslation } from '../hooks/useTranslation'
-import { saveKomselAttendance, getCurrentJemaat, getJemaat } from '../services/database'
+// PERBAIKAN: Import getTodayWIB
+import { saveKomselAttendance, getCurrentJemaat, getJemaat, getTodayWIB } from '../services/database'
 
 function KomselAttendanceScreen({ onBack }) {
   const { t } = useTranslation()
@@ -43,7 +44,8 @@ function KomselAttendanceScreen({ onBack }) {
     const { data, error } = await saveKomselAttendance({
       lokasi: location,
       anggota: anggotaData,
-      tanggal: new Date().toISOString().split('T')[0]
+      // PERBAIKAN: Gunakan getTodayWIB() bukan toISOString()
+      tanggal: getTodayWIB()
     })
 
     setIsSubmitting(false)

@@ -34,33 +34,27 @@ export async function getJemaat() {
   return { data, error }
 }
 
-// Ambil data lengkap (untuk profile sendiri, butuh email & komsel)
-export async function getJemaatByEmail(email) {
-  const { data, error } = await supabase
-    .from('jemaat')
-    .select('*')
-    .eq('email', email)
-    .maybeSingle()
-  return { data, error }
-}
+// PERBAIKAN: getJemaatByEmail DIHAPUS karena kolom email sudah tidak bisa di-select
 
 export async function getCurrentJemaat() {
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) return { data: null, error }
   
+  // PERBAIKAN: Cari berdasarkan id (auth.uid) dan batasi kolomnya
   const { data: jemaat, error: jemaatError } = await supabase
     .from('jemaat')
-    .select('*')
-    .eq('email', user.email)
+    .select('id, nama, komsel')
+    .eq('id', user.id)
     .maybeSingle()
   
   return { data: jemaat, error: jemaatError }
 }
 
 export async function getJemaatById(id) {
+  // PERBAIKAN: Batasi kolom yang diambil
   const { data, error } = await supabase
     .from('jemaat')
-    .select('*')
+    .select('id, nama, komsel')
     .eq('id', id)
     .maybeSingle()
   return { data, error }

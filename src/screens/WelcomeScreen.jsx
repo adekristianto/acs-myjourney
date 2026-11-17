@@ -1,6 +1,6 @@
 // screens/WelcomeScreen.jsx
 import { useEffect, useState } from 'react'
-import { getCurrentJemaat, checkFoundingMember } from '../services/database'
+import { checkFoundingMember } from '../services/database'
 import { useTranslation } from '../hooks/useTranslation'
 
 const DIMENSIONS = [
@@ -10,7 +10,8 @@ const DIMENSIONS = [
   { key: 'social',    icon: '\u{1F91D}' },
 ]
 
-function WelcomeScreen({ onBegin, darkMode }) {
+// PERBAIKAN: Tambahkan currentUser ke dalam props
+function WelcomeScreen({ onBegin, darkMode, currentUser }) {
   const { t } = useTranslation()
   const [isFounding, setIsFounding] = useState(false)
   const [checked, setChecked] = useState(false)
@@ -18,17 +19,17 @@ function WelcomeScreen({ onBegin, darkMode }) {
   useEffect(() => {
     let active = true
     const check = async () => {
-      const { data: jemaat } = await getCurrentJemaat()
-      if (!jemaat?.id) { if (active) setChecked(true); return }
+      // PERBAIKAN: Gunakan currentUser dari props, bukan getCurrentJemaat()
+      if (!currentUser?.id) { if (active) setChecked(true); return }
 
-      const { data: badge } = await checkFoundingMember(jemaat.id)
+      const { data: badge } = await checkFoundingMember(currentUser.id)
       if (!active) return
       setIsFounding(badge?.isFoundingMember === true)
       setChecked(true)
     }
     check()
     return () => { active = false }
-  }, [])
+  }, [currentUser])
 
   const bgColor = darkMode ? 'bg-[#0D0D0D]' : 'bg-[#F8F8F8]'
   const textColor = darkMode ? 'text-white' : 'text-[#111111]'

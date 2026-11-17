@@ -102,7 +102,9 @@ function HomeScreen({
           })}
         </div>
 
-        {/* QUICK ACCESS */}
+        {/* QUICK ACCESS — DISEMBUNYIKAN SEMENTARA SESUAI INSTRUKSI PS. DANIEL */}
+        {/* Fitur Absensi akan dimunculkan kembali setelah M8 selesai */}
+        {/*
         <div className="grid grid-cols-2 gap-3">
           <button
             onClick={onKomselClick}
@@ -117,6 +119,7 @@ function HomeScreen({
             👥 {t('attendance.worker')}
           </button>
         </div>
+        */}
 
       </div>
     </div>

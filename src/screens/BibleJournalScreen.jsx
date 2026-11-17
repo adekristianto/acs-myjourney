@@ -1,7 +1,7 @@
 // screens/BibleJournalScreen.jsx
 import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
-import { saveJournal } from '../services/database'
+import { getTodayWIB, saveJournal } from '../services/database'
 
 function BibleJournalScreen({ onBack, onComplete, currentUser, darkMode }) {
   const { t } = useTranslation()
@@ -31,7 +31,7 @@ function BibleJournalScreen({ onBack, onComplete, currentUser, darkMode }) {
       jemaatId: jemaatId,
       dimension: 'spiritual',
       content: content,
-      entryDate: new Date().toISOString().split('T')[0]
+      entryDate: getTodayWIB() // Sudah diperbaiki
     })
 
     setIsSubmitting(false)

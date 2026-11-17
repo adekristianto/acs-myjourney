@@ -208,6 +208,7 @@ function App() {
     return <WelcomeScreen 
       onBegin={() => setAuthStep('ready')} 
       darkMode={darkMode} 
+      currentUser={currentUser} // PERBAIKAN: Kirim currentUser ke WelcomeScreen
     />
   }
 

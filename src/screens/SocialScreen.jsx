@@ -1,7 +1,8 @@
 // screens/SocialScreen.jsx
 import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
-import { saveJournal } from '../services/database'
+// PERBAIKAN: Import getTodayWIB
+import { saveJournal, getTodayWIB } from '../services/database'
 
 function SocialScreen({ onBack, onComplete, currentUser }) {
   const { t } = useTranslation()
@@ -27,7 +28,8 @@ function SocialScreen({ onBack, onComplete, currentUser }) {
       jemaatId: jemaatId,
       dimension: 'social',
       content: { note: note },
-      entryDate: new Date().toISOString().split('T')[0]
+      // PERBAIKAN: Hapus komentar kode lama
+      entryDate: getTodayWIB()
     })
 
     setIsSubmitting(false)
