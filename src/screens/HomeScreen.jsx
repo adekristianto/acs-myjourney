@@ -16,13 +16,10 @@ function HomeScreen({
 }) {
   const { t, locale, toggleLocale } = useTranslation()
   
-  // Hitung completedCount dari dimensions (status hari ini)
   const completedCount = dimensions.filter(d => d.completed).length
-
-  // Ambil nama depan
   const firstName = currentUser?.nama?.split(' ')[0] || ''
   
-  // Sapaan & pesan berdasarkan waktu WIB & bahasa
+  // Ambil sapaan & pesan
   const salutation = getSalutation(locale)
   const greetingMessage = getGreetingMessage(locale)
 
@@ -32,19 +29,19 @@ function HomeScreen({
       <div className="w-full max-w-sm">
         
         {/* HEADER BARU — RATA TENGAH */}
-        <div className="text-center mb-6 relative">
+        <div className="text-center mb-6 relative pt-2">
           
-          {/* Tombol bahasa, tema, logout di pojok kanan atas */}
-          <div className="absolute top-0 right-0 flex items-center gap-1.5">
+          {/* Tombol di pojok kanan atas */}
+          <div className="absolute top-0 right-0 flex items-center gap-1">
             <button
               onClick={toggleLocale}
-              className="px-2 py-1.5 rounded-lg text-xs font-medium border border-gray-300 dark:border-gray-700"
+              className="px-2 py-1 rounded-lg text-xs font-medium border border-gray-300 dark:border-gray-700"
             >
               {locale === 'en' ? '🇮🇩' : '🇬🇧'}
             </button>
             <button
               onClick={toggleDarkMode}
-              className={`px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-2 py-1 rounded-lg text-sm font-medium transition-colors ${
                 darkMode 
                   ? 'bg-[#FF8A00] text-black' 
                   : 'bg-[#111111] text-white'
@@ -54,36 +51,29 @@ function HomeScreen({
             </button>
             <button
               onClick={onLogout}
-              className="px-2 py-1.5 rounded-lg text-xs font-medium text-red-500 border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              className="px-2 py-1 rounded-lg text-xs font-medium text-red-500 border border-red-300 dark:border-red-700"
             >
-              {t('home.logout') || 'Logout'}
+              Logout
             </button>
           </div>
 
-          {/* Baris 1: Kecil abu */}
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 pt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">
             ACS · My Journey
           </p>
-
-          {/* Baris 2: Sapaan */}
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
             {salutation},
           </p>
-
-          {/* Baris 3: Nama depan (kalau ada) */}
           {firstName && (
             <h1 className="text-2xl font-bold text-[#111111] dark:text-white mb-2">
               {firstName}
             </h1>
           )}
-
-          {/* Baris 4: Pesan acak */}
           <p className="text-sm italic text-gray-500 dark:text-gray-400 max-w-xs mx-auto">
             {greetingMessage}
           </p>
         </div>
 
-        {/* STREAK — menampilkan jumlah dimensi yang sudah diisi HARI INI */}
+        {/* STREAK */}
         <div className="p-4 rounded-lg text-center bg-white dark:bg-[#151515] border border-gray-200 dark:border-gray-700 mb-4">
           <p className="text-2xl font-bold text-[#FF8A00]">
             {t('home.streak').replace('{count}', completedCount)}
@@ -103,7 +93,6 @@ function HomeScreen({
             
             const labelKey = `dimensions.${dim.id}`
             const label = t(labelKey) !== labelKey ? t(labelKey) : dim.label
-            
             const dimStreak = streaks?.[dim.id] || 0
             
             return (
@@ -126,25 +115,7 @@ function HomeScreen({
           })}
         </div>
 
-        {/* QUICK ACCESS — DISEMBUNYIKAN SEMENTARA */}
-        {/* Fitur Absensi akan dimunculkan kembali setelah M8 selesai */}
-        {/*
-        <div className="grid grid-cols-2 gap-3">
-          <button
-            onClick={onKomselClick}
-            className="p-4 rounded-lg text-center font-medium text-white bg-[#FF8A00] hover:bg-[#E67A00] transition-colors"
-          >
-            📋 {t('attendance.komsel')}
-          </button>
-          <button
-            onClick={onWorkerClick}
-            className="p-4 rounded-lg text-center font-medium text-white bg-black hover:bg-gray-800 transition-colors dark:bg-[#151515] dark:hover:bg-[#222222]"
-          >
-            👥 {t('attendance.worker')}
-          </button>
-        </div>
-        */}
-
+        {/* Quick Access disembunyikan sementara */}
       </div>
     </div>
   )

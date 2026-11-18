@@ -8,7 +8,7 @@ import {
   needsPasswordChange, 
   logoutJemaat,
   isRecoveryLink,
-  getTodayWIB // Import helper WIB
+  getTodayWIB
 } from './services/database'
 import LoginScreen from './screens/LoginScreen'
 import SetPasswordScreen from './screens/SetPasswordScreen'
@@ -47,13 +47,13 @@ function App() {
   })
   const [isRecovery, setIsRecovery] = useState(false)
 
-  // LOAD STATUS HARI INI (dari journal, BUKAN streak)
+  // LOAD STATUS HARI INI
   const loadTodayStatus = async (jemaatId) => {
     if (!jemaatId) return
 
     const dims = ['wisdom', 'physical', 'spiritual', 'social']
     const todayStatus = {}
-    const today = getTodayWIB() // Gunakan WIB
+    const today = getTodayWIB()
 
     for (const dim of dims) {
       const { data, error } = await getTodayJournal(jemaatId, dim)
@@ -75,12 +75,10 @@ function App() {
   }
 
   // UPDATE STREAK SETELAH SUBMIT JOURNAL
-  // Logika perhitungan streak sekarang ditangani sepenuhnya oleh database.js
   const updateStreakAfterJournal = async (dimensionId) => {
     if (!currentUser) return
 
-    // Cukup panggil updateStreak tanpa menghitung manual
-    const result = await updateStreak(currentUser.id, dimensionId, 0) // parameter ke-3 tidak dipakai lagi
+    const result = await updateStreak(currentUser.id, dimensionId)
 
     if (result.error) {
       console.error('❌ Streak update failed:', result.error)
@@ -88,7 +86,6 @@ function App() {
       return
     }
 
-    // Muat ulang semua status dari database
     await loadTodayStatus(currentUser.id)
   }
 
@@ -98,7 +95,6 @@ function App() {
       document.documentElement.classList.add('dark')
     }
 
-    // CEK APAKAH INI RECOVERY LINK — PALING PERTAMA!
     if (isRecoveryLink()) {
       setIsRecovery(true)
       setAuthLoading(false)
@@ -123,11 +119,8 @@ function App() {
 
   const handleLoginSuccess = async (authUser) => {
     const mustChange = needsPasswordChange(authUser)
-  
-    // Ambil data jemaat dari database (bukan auth user)
     const { data } = await getCurrentJemaat()
     setCurrentUser(data || authUser)
-  
     loadTodayStatus(authUser.id)
     setCurrentScreen('home')
     setAuthStep(mustChange ? 'setPassword' : 'welcome')
@@ -158,13 +151,10 @@ function App() {
     setStreaks({ wisdom: 0, physical: 0, spiritual: 0, social: 0, full_day: 0 })
   }
 
-  // Handler setelah selesai reset password
   const handlePasswordResetComplete = async () => {
-    // Clear hash & query params dari URL
     window.history.replaceState(null, '', window.location.pathname)
     setIsRecovery(false)
     setAuthStep('ready')
-    // Reload user session setelah reset
     const { data } = await getCurrentJemaat()
     if (data) {
       setCurrentUser(data)
@@ -178,7 +168,6 @@ function App() {
     </div>
   )
 
-  // LOADING
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0D0D0D]">
@@ -187,12 +176,10 @@ function App() {
     )
   }
 
-  // ⭐ PRIORITAS TERTINGGI: RECOVERY LINK
   if (isRecovery || isRecoveryLink()) {
     return <SetPasswordScreen onComplete={handlePasswordResetComplete} />
   }
 
-  // LOGIN / FORGOT PASSWORD
   if (!currentUser) {
     if (showForgot) {
       return <ForgotPasswordScreen onBack={() => setShowForgot(false)} />
@@ -203,21 +190,18 @@ function App() {
     />
   }
 
-  // SET PASSWORD (first login)
   if (authStep === 'setPassword') {
     return <SetPasswordScreen onComplete={() => setAuthStep('welcome')} />
   }
 
-  // WELCOME SCREEN
   if (authStep === 'welcome') {
     return <WelcomeScreen 
       onBegin={() => setAuthStep('ready')} 
       darkMode={darkMode} 
-      currentUser={currentUser} // PERBAIKAN: Kirim currentUser ke WelcomeScreen
+      currentUser={currentUser}
     />
   }
 
-  // NAVIGATION
   if (currentScreen === 'komsel') {
     return renderWithContainer(KomselAttendanceScreen, { onBack: () => setCurrentScreen('home') })
   }
@@ -254,7 +238,6 @@ function App() {
     })
   }
 
-  // HOME
   return (
     <div className="max-w-lg mx-auto pt-safe">
       <HomeScreen
