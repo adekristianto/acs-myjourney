@@ -121,11 +121,16 @@ function App() {
     document.documentElement.classList.toggle('dark')
   }
 
-  const handleLoginSuccess = (user) => {
-    setCurrentUser(user)
-    loadTodayStatus(user.id)
+  const handleLoginSuccess = async (authUser) => {
+    const mustChange = needsPasswordChange(authUser)
+  
+    // Ambil data jemaat dari database (bukan auth user)
+    const { data } = await getCurrentJemaat()
+    setCurrentUser(data || authUser)
+  
+    loadTodayStatus(authUser.id)
     setCurrentScreen('home')
-    setAuthStep(needsPasswordChange(user) ? 'setPassword' : 'welcome')
+    setAuthStep(mustChange ? 'setPassword' : 'welcome')
   }
 
   const handleLogout = async () => {

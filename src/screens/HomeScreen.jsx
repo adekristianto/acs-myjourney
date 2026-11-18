@@ -1,6 +1,7 @@
 // screens/HomeScreen.jsx
 import DimensionCard from '../components/DimensionCard'
 import { useTranslation } from '../hooks/useTranslation'
+import { getSalutation, getGreetingMessage } from '../data/greetings'
 
 function HomeScreen({ 
   currentUser,
@@ -15,34 +16,35 @@ function HomeScreen({
 }) {
   const { t, locale, toggleLocale } = useTranslation()
   
-  // ✅ PERBAIKAN: completedCount dari dimensions (status hari ini), BUKAN dari streaks.full_day
+  // Hitung completedCount dari dimensions (status hari ini)
   const completedCount = dimensions.filter(d => d.completed).length
 
-  const userName = currentUser?.nama || 'ACS Congregation'
+  // Ambil nama depan
+  const firstName = currentUser?.nama?.split(' ')[0] || ''
+  
+  // Sapaan & pesan berdasarkan waktu WIB & bahasa
+  const salutation = getSalutation(locale)
+  const greetingMessage = getGreetingMessage(locale)
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-4 bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white overflow-x-hidden">
       
       <div className="w-full max-w-sm">
         
-        {/* HEADER */}
-        <div className="flex justify-between items-center py-3">
-          <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold truncate">{t('app.title')}</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
-              Welcome back, {userName}
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0 ml-2">
+        {/* HEADER BARU — RATA TENGAH */}
+        <div className="text-center mb-6 relative">
+          
+          {/* Tombol bahasa, tema, logout di pojok kanan atas */}
+          <div className="absolute top-0 right-0 flex items-center gap-1.5">
             <button
               onClick={toggleLocale}
-              className="px-2.5 py-1.5 rounded-lg text-xs font-medium border border-gray-300 dark:border-gray-700"
+              className="px-2 py-1.5 rounded-lg text-xs font-medium border border-gray-300 dark:border-gray-700"
             >
               {locale === 'en' ? '🇮🇩' : '🇬🇧'}
             </button>
             <button
               onClick={toggleDarkMode}
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-2.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 darkMode 
                   ? 'bg-[#FF8A00] text-black' 
                   : 'bg-[#111111] text-white'
@@ -52,11 +54,33 @@ function HomeScreen({
             </button>
             <button
               onClick={onLogout}
-              className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-red-500 border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+              className="px-2 py-1.5 rounded-lg text-xs font-medium text-red-500 border border-red-300 dark:border-red-700 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
               {t('home.logout') || 'Logout'}
             </button>
           </div>
+
+          {/* Baris 1: Kecil abu */}
+          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 pt-1">
+            ACS · My Journey
+          </p>
+
+          {/* Baris 2: Sapaan */}
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">
+            {salutation},
+          </p>
+
+          {/* Baris 3: Nama depan (kalau ada) */}
+          {firstName && (
+            <h1 className="text-2xl font-bold text-[#111111] dark:text-white mb-2">
+              {firstName}
+            </h1>
+          )}
+
+          {/* Baris 4: Pesan acak */}
+          <p className="text-sm italic text-gray-500 dark:text-gray-400 max-w-xs mx-auto">
+            {greetingMessage}
+          </p>
         </div>
 
         {/* STREAK — menampilkan jumlah dimensi yang sudah diisi HARI INI */}
@@ -102,7 +126,7 @@ function HomeScreen({
           })}
         </div>
 
-        {/* QUICK ACCESS — DISEMBUNYIKAN SEMENTARA SESUAI INSTRUKSI PS. DANIEL */}
+        {/* QUICK ACCESS — DISEMBUNYIKAN SEMENTARA */}
         {/* Fitur Absensi akan dimunculkan kembali setelah M8 selesai */}
         {/*
         <div className="grid grid-cols-2 gap-3">

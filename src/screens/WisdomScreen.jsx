@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { saveJournal } from '../services/database'
+import { getTodayWIB } from '../services/database'
 
 function WisdomScreen({ onBack, onComplete, currentUser }) {
   const { t } = useTranslation()
@@ -27,7 +28,8 @@ function WisdomScreen({ onBack, onComplete, currentUser }) {
       jemaatId: jemaatId,
       dimension: 'wisdom',
       content: { note: note },
-      entryDate: new Date().toISOString().split('T')[0]
+      //entryDate: new Date().toISOString().split('T')[0]
+      entryDate: getTodayWIB()
     })
 
     setIsSubmitting(false)

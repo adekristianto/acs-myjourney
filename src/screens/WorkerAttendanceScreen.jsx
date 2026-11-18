@@ -41,7 +41,8 @@ function WorkerAttendanceScreen({ onBack }) {
 
     const { data, error } = await saveWorkerAttendance({
       anggota: anggotaData,
-      meetingDate: new Date().toISOString().split('T')[0]
+      //meetingDate: new Date().toISOString().split('T')[0]
+      meetingDate: getTodayWIB()
     })
 
     setIsSubmitting(false)

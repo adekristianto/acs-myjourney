@@ -406,3 +406,8 @@ export async function awardFoundingBadge(jemaatId, badgeType = 'founder') {
     .select()
   return { data, error }
 }
+
+// src/services/database.js
+export function getTodayWIB() {
+  return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' })
+}

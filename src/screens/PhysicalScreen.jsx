@@ -27,7 +27,8 @@ function PhysicalScreen({ onBack, onComplete, currentUser }) {
       jemaatId: jemaatId,
       dimension: 'physical',
       content: { note: note },
-      entryDate: new Date().toISOString().split('T')[0]
+      //entryDate: new Date().toISOString().split('T')[0]
+      entryDate: getTodayWIB()
     })
 
     setIsSubmitting(false)
