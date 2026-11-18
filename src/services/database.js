@@ -34,13 +34,10 @@ export async function getJemaat() {
   return { data, error }
 }
 
-// PERBAIKAN: getJemaatByEmail DIHAPUS karena kolom email sudah tidak bisa di-select
-
 export async function getCurrentJemaat() {
   const { data: { user }, error } = await supabase.auth.getUser()
   if (error || !user) return { data: null, error }
   
-  // PERBAIKAN: Cari berdasarkan id (auth.uid) dan batasi kolomnya
   const { data: jemaat, error: jemaatError } = await supabase
     .from('jemaat')
     .select('id, nama, komsel')
@@ -51,7 +48,6 @@ export async function getCurrentJemaat() {
 }
 
 export async function getJemaatById(id) {
-  // PERBAIKAN: Batasi kolom yang diambil
   const { data, error } = await supabase
     .from('jemaat')
     .select('id, nama, komsel')
@@ -71,7 +67,7 @@ export async function saveJournal({ jemaatId, dimension, content, entryDate }) {
       jemaat_id: jemaatId,
       dimension_type: dimension,
       content: content,
-      tanggal: entryDate || getTodayWIB()  // ← Pakai WIB
+      tanggal: entryDate || getTodayWIB()
     }])
     .select()
   return { data, error }
@@ -97,7 +93,7 @@ export async function getJournalsByDimension(jemaatId, dimension) {
 }
 
 export async function getTodayJournal(jemaatId, dimension) {
-  const today = getTodayWIB()  // ← Pakai WIB
+  const today = getTodayWIB()
   const { data, error } = await supabase
     .from('journals')
     .select('*')
@@ -111,7 +107,7 @@ export async function getTodayJournal(jemaatId, dimension) {
 }
 
 // ============================================
-// STREAKS — PERBAIKAN: PER HARI, BUKAN +1 SETIAP SIMPAN
+// STREAKS
 // ============================================
 
 export async function getStreaks(jemaatId) {
@@ -149,15 +145,10 @@ export async function getStreaks(jemaatId) {
   return { data: streaks, error: null }
 }
 
-// PERBAIKAN: Streak dihitung per hari berturut-turut
-// - Isi 2x sehari = tetap +1 (bukan +2)
-// - Bolong sehari = reset ke 1
-// - longest_streak tidak boleh turun
-export async function updateStreak(jemaatId, dimensionType, streakValue) {
+export async function updateStreak(jemaatId, dimensionType) {
   const today = getTodayWIB()
   const yesterday = getYesterdayWIB()
   
-  // 1. Ambil streak yang ada
   const { data: existing } = await supabase
     .from('streaks')
     .select('*')
@@ -165,28 +156,22 @@ export async function updateStreak(jemaatId, dimensionType, streakValue) {
     .eq('dimension_type', dimensionType)
     .maybeSingle()
   
-  // 2. Kalau sudah update hari ini, jangan tambah lagi
   if (existing && existing.last_update === today) {
     return { data: existing, error: null }
   }
   
-  // 3. Hitung streak baru
   let newStreak = 1
   let longestStreak = existing?.longest_streak || 0
   
   if (existing) {
     if (existing.last_update === yesterday) {
-      // Lanjut streak (kemarin sudah isi)
       newStreak = (existing.current_streak || 0) + 1
     } else {
-      // Bolong sehari atau lebih → reset ke 1
       newStreak = 1
     }
-    // longest_streak tidak boleh turun
     longestStreak = Math.max(newStreak, longestStreak)
   }
   
-  // 4. Upsert
   const { data, error } = await supabase
     .from('streaks')
     .upsert({
@@ -293,7 +278,6 @@ export async function updatePassword(newPassword) {
   return { data, error }
 }
 
-// Kirim email link reset password
 export async function sendPasswordReset(email) {
   const redirectTo = `${window.location.origin}/?reset=1&type=recovery`
   const { data, error } = await supabase.auth.resetPasswordForEmail(
@@ -303,8 +287,6 @@ export async function sendPasswordReset(email) {
   return { data, error }
 }
 
-// Cek apakah URL saat ini adalah link recovery dari email
-// PERBAIKAN: Tidak ada console.log URL (keamanan)
 export function isRecoveryLink() {
   const hash = window.location.hash || ''
   const search = window.location.search || ''
@@ -322,7 +304,6 @@ export function isRecoveryLink() {
   )
 }
 
-// Tunggu sampai Supabase selesai memproses link recovery dan sesi terbentuk
 export async function waitForRecoverySession(timeoutMs = 8000) {
   const { data: { session } } = await supabase.auth.getSession()
   if (session) return { ready: true, session }
@@ -405,9 +386,4 @@ export async function awardFoundingBadge(jemaatId, badgeType = 'founder') {
     }])
     .select()
   return { data, error }
-}
-
-// src/services/database.js
-export function getTodayWIB() {
-  return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' })
 }
