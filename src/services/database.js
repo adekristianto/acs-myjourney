@@ -126,12 +126,16 @@ export async function getStreaks(jemaatId) {
     full_day: 0
   }
   
+  const today = getTodayWIB()
+  const yesterday = getYesterdayWIB()
   data?.forEach(s => {
     const dim = s.dimension_type
+    const masihJalan = s.last_update === today || s.last_update === yesterday
+    const val = masihJalan ? (s.current_streak || 0) : 0
     if (dim === 'full_day') {
-      streaks.full_day = s.current_streak || 0
+      streaks.full_day = val
     } else {
-      streaks[dim] = s.current_streak || 0
+      streaks[dim] = val
     }
   })
   

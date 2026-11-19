@@ -95,7 +95,7 @@ export default function JournalHistoryScreen({ onBack, currentUser }) {
     setErrorMsg('')
     try {
       const content = { ...(entry.content || {}), ...draft }
-      const { data, error } = await updateJournalContent(entry.id, content)
+      const { data, error } = await updateJournalContent(entry.id, content, entry._contentIsString)
       if (error || !data) { setErrorMsg('SAVE'); return }
       setItems(prev => prev.map(it => (it.id === entry.id ? { ...it, content: data.content } : it)))
       setEditId(null)

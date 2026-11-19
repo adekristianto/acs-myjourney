@@ -2,6 +2,19 @@
 // Semua fungsi mengembalikan { data, error }, tidak pernah throw.
 import { supabase } from '../supabaseClient'
 
+// Kolom content bisa tersimpan sebagai teks JSON atau objek — samakan jadi objek
+function parseContent(c) {
+  if (c && typeof c === 'object') return c
+  if (typeof c === 'string') {
+    try { const o = JSON.parse(c); if (o && typeof o === 'object') return o } catch { /* teks biasa */ }
+    return { note: c }
+  }
+  return {}
+}
+function normalize(row) {
+  return row ? { ...row, content: parseContent(row.content), _contentIsString: typeof row.content === 'string' } : row
+}
+
 export async function getJournalHistory(jemaatId, { limit = 30, offset = 0, dimension = 'all' } = {}) {
   try {
     let q = supabase
@@ -13,21 +26,21 @@ export async function getJournalHistory(jemaatId, { limit = 30, offset = 0, dime
       .range(offset, offset + limit - 1)
     if (dimension !== 'all') q = q.eq('dimension_type', dimension)
     const { data, error } = await q
-    return { data: data || [], error }
+    return { data: (data || []).map(normalize), error }
   } catch (error) {
     return { data: [], error }
   }
 }
 
-export async function updateJournalContent(journalId, content) {
+export async function updateJournalContent(journalId, content, asString = false) {
   try {
     const { data, error } = await supabase
       .from('journals')
-      .update({ content })          // tanggal sengaja TIDAK bisa diubah
+      .update({ content: asString ? JSON.stringify(content) : content })   // tanggal sengaja TIDAK bisa diubah
       .eq('id', journalId)
       .select('id, dimension_type, content, tanggal, created_at')
       .maybeSingle()
-    return { data, error }
+    return { data: normalize(data), error }
   } catch (error) {
     return { data: null, error }
   }
