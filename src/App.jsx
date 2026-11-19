@@ -22,6 +22,8 @@ import WisdomScreen from './screens/WisdomScreen'
 import PhysicalScreen from './screens/PhysicalScreen'
 import SocialScreen from './screens/SocialScreen'
 import JournalHistoryScreen from './screens/JournalHistoryScreen'
+import PelayananScreen from './pelayanan/PelayananScreen'
+import { getMyRoles } from './services/pelayanan'
 import { useToast } from './ui/Toast'
 import './index.css'
 
@@ -49,6 +51,15 @@ function App() {
     full_day: 0
   })
   const [isRecovery, setIsRecovery] = useState(false)
+  const [roles, setRoles] = useState([])
+
+  // Peran pelayanan (super admin, admin, ketua team, ketua/pembantu komsel)
+  useEffect(() => {
+    let alive = true
+    if (!currentUser?.id) { setRoles([]); return }
+    getMyRoles(currentUser.id).then(({ data }) => { if (alive) setRoles(data || []) })
+    return () => { alive = false }
+  }, [currentUser?.id])
 
   // LOAD STATUS HARI INI (dari journal, BUKAN streak)
   const loadTodayStatus = async (jemaatId) => {
@@ -218,6 +229,9 @@ function App() {
   }
 
   // NAVIGATION
+  if (currentScreen === 'pelayanan' && roles.length > 0) {
+    return renderWithContainer(PelayananScreen, { onBack: () => setCurrentScreen('home'), currentUser, roles })
+  }
   if (currentScreen === 'history') {
     return renderWithContainer(JournalHistoryScreen, { onBack: () => setCurrentScreen('home'), currentUser })
   }
@@ -271,6 +285,8 @@ function App() {
           setCurrentScreen(map[id])
         }}
         onHistoryClick={() => setCurrentScreen('history')}
+        roles={roles}
+        onPelayananClick={() => setCurrentScreen('pelayanan')}
         onLogout={handleLogout}
       />
     </div>

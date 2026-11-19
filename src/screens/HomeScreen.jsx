@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { getSalutation, getGreetingMessage } from '../data/greetings'
 import { getJourneyStats } from '../services/history'
+import DailyCard from '../components/DailyCard'
 import { DimIcon, IconChevron, IconCheck, IconMoon, IconSun, IconLogout, IconBook } from '../ui/icons'
 
 const L = {
@@ -12,7 +13,7 @@ const L = {
     entries: 'catatan', days: 'hari aktif', since: 'sejak', logout: 'Keluar', locale: 'id-ID',
     dims: { wisdom: 'Akal Budi', physical: 'Fisik', spiritual: 'Rohani', social: 'Sosial' },
     prompts: { wisdom: 'Apa yang kamu pelajari hari ini?', physical: 'Gerak, makan, istirahat', spiritual: 'Ayat & renungan', social: 'Siapa yang kamu berkati?' },
-    verse: 'Lukas 2:52',
+    verse: 'Lukas 2:52', serve: 'Pelayanan', serveTitle: 'Pelayanan', serveSub: 'Laporan Minggu, tindakan, peran',
   },
   en: {
     today: 'Today', of: 'of 4 dimensions', allDone: 'All four done today. Amazing!', keepGoing: 'One more step still counts.',
@@ -20,7 +21,7 @@ const L = {
     entries: 'entries', days: 'active days', since: 'since', logout: 'Log out', locale: 'en-US',
     dims: { wisdom: 'Wisdom', physical: 'Physical', spiritual: 'Spiritual', social: 'Social' },
     prompts: { wisdom: 'What did you learn today?', physical: 'Move, eat, rest', spiritual: 'Scripture & reflection', social: 'Who did you bless today?' },
-    verse: 'Luke 2:52',
+    verse: 'Luke 2:52', serve: 'Ministry', serveTitle: 'Ministry', serveSub: 'Sunday reports, actions, roles',
   },
 }
 
@@ -36,7 +37,7 @@ function Ring({ value, total = 4 }) {
   )
 }
 
-export default function HomeScreen({ currentUser, darkMode, toggleDarkMode, dimensions, streaks, onDimensionClick, onHistoryClick, onLogout }) {
+export default function HomeScreen({ currentUser, darkMode, toggleDarkMode, dimensions, streaks, onDimensionClick, onHistoryClick, onLogout, roles = [], onPelayananClick }) {
   const { locale, toggleLocale } = useTranslation()
   const lang = locale === 'id' ? 'id' : 'en'
   const tx = L[lang]
@@ -85,6 +86,10 @@ export default function HomeScreen({ currentUser, darkMode, toggleDarkMode, dime
           </div>
         </section>
 
+        {/* Kartu harian: Morning Devotion / baca Alkitab */}
+        <DailyCard lang={lang} spiritualDone={!!dimensions.find(d => d.id === 'spiritual')?.completed}
+          onOpenSpiritual={() => onDimensionClick('spiritual')} />
+
         {/* Dimensions */}
         <h2 className="mt-7 mb-2 px-4 text-[13px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{tx.verse}</h2>
         <section className="rounded-2xl bg-white dark:bg-[#1C1C1E] overflow-hidden">
@@ -123,6 +128,18 @@ export default function HomeScreen({ currentUser, darkMode, toggleDarkMode, dime
             <span className="text-gray-300 dark:text-gray-600"><IconChevron /></span>
           </button>
         </section>
+
+        {/* Pelayanan — hanya untuk yang punya peran */}
+        {roles.length > 0 && (<>
+          <h2 className="mt-7 mb-2 px-4 text-[13px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{tx.serve}</h2>
+          <section className="rounded-2xl bg-white dark:bg-[#1C1C1E] overflow-hidden">
+            <button onClick={onPelayananClick} className="w-full flex items-center gap-3 pl-4 pr-3 py-3 active:bg-black/[0.04] dark:active:bg-white/[0.06]">
+              <span className="w-[30px] h-[30px] rounded-[8px] bg-[#FF8A00] text-white flex items-center justify-center text-[15px]">✎</span>
+              <span className="flex-1 text-left"><span className="block text-[17px] font-medium">{tx.serveTitle}</span><span className="block text-[13px] text-gray-500 dark:text-gray-400">{tx.serveSub}</span></span>
+              <span className="text-gray-300 dark:text-gray-600"><IconChevron /></span>
+            </button>
+          </section>
+        </>)}
 
         <p className="mt-8 text-center text-[12px] text-gray-400 dark:text-gray-600">GBI ACS · My Journey</p>
       </div>
