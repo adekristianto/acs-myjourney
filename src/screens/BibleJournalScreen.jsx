@@ -2,9 +2,12 @@
 import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { getTodayWIB, saveJournal } from '../services/database'
+import Toast from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 
 function BibleJournalScreen({ onBack, onComplete, currentUser, darkMode }) {
   const { t } = useTranslation()
+  const { toast, showToast, hideToast } = useToast()
   const [ayat, setAyat] = useState('')
   const [pesan, setPesan] = useState('')
   const [komitmen, setKomitmen] = useState('')
@@ -12,7 +15,7 @@ function BibleJournalScreen({ onBack, onComplete, currentUser, darkMode }) {
 
   const handleSubmit = async () => {
     if (!ayat.trim()) {
-      alert(t('journal.verseRequired') || '⚠️ Mohon isi ayat yang dibaca')
+      showToast(t('journal.verseRequired') || '⚠️ Mohon isi ayat yang dibaca', 'error')
       return
     }
 
@@ -20,7 +23,7 @@ function BibleJournalScreen({ onBack, onComplete, currentUser, darkMode }) {
     const jemaatId = currentUser?.id
 
     if (!jemaatId) {
-      alert('❌ Silakan login terlebih dahulu')
+      showToast('❌ Silakan login terlebih dahulu', 'error')
       setIsSubmitting(false)
       return
     }
@@ -31,22 +34,26 @@ function BibleJournalScreen({ onBack, onComplete, currentUser, darkMode }) {
       jemaatId: jemaatId,
       dimension: 'spiritual',
       content: content,
-      entryDate: getTodayWIB() // Sudah diperbaiki
+      entryDate: getTodayWIB()
     })
 
     setIsSubmitting(false)
 
     if (error) {
-      alert(`❌ Gagal menyimpan: ${error.message}`)
+      showToast(`❌ Gagal menyimpan: ${error.message}`, 'error')
       return
     }
 
-    alert(`✅ ${t('journal.spiritual')} ${t('journal.saved')}!\n\n📖 ${t('journal.verse')}: ${ayat}\n💬 ${t('journal.message')}: ${pesan || '(tidak diisi)'}\n📝 ${t('journal.commitment')}: ${komitmen || '(tidak diisi)'}`)
-    onComplete()
-    setAyat('')
-    setPesan('')
-    setKomitmen('')
-    onBack()
+    // Tampilkan toast sukses (tanpa ringkasan panjang)
+    showToast('✅ ' + t('journal.spiritual') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
+    
+    setTimeout(() => {
+      onComplete()
+      setAyat('')
+      setPesan('')
+      setKomitmen('')
+      onBack()
+    }, 1500)
   }
 
   return (
@@ -114,6 +121,15 @@ function BibleJournalScreen({ onBack, onComplete, currentUser, darkMode }) {
         </div>
 
       </div>
+
+      {/* TOAST */}
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={hideToast} 
+        />
+      )}
     </div>
   )
 }

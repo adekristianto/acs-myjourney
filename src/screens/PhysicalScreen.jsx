@@ -1,16 +1,19 @@
 // screens/PhysicalScreen.jsx
 import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
-import { saveJournal } from '../services/database'
+import { saveJournal, getTodayWIB } from '../services/database'
+import Toast from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 
 function PhysicalScreen({ onBack, onComplete, currentUser }) {
   const { t } = useTranslation()
+  const { toast, showToast, hideToast } = useToast()
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async () => {
     if (!note.trim()) {
-      alert(t('journal.required') || '⚠️ Mohon isi aktivitas fisik hari ini')
+      showToast(t('journal.required') || '⚠️ Mohon isi aktivitas fisik hari ini', 'error')
       return
     }
 
@@ -18,7 +21,7 @@ function PhysicalScreen({ onBack, onComplete, currentUser }) {
     const jemaatId = currentUser?.id
 
     if (!jemaatId) {
-      alert('❌ Silakan login terlebih dahulu')
+      showToast('❌ Silakan login terlebih dahulu', 'error')
       setIsSubmitting(false)
       return
     }
@@ -27,21 +30,24 @@ function PhysicalScreen({ onBack, onComplete, currentUser }) {
       jemaatId: jemaatId,
       dimension: 'physical',
       content: { note: note },
-      //entryDate: new Date().toISOString().split('T')[0]
       entryDate: getTodayWIB()
     })
 
     setIsSubmitting(false)
 
     if (error) {
-      alert(`❌ Gagal menyimpan: ${error.message}`)
+      showToast(`❌ Gagal menyimpan: ${error.message}`, 'error')
       return
     }
 
-    alert('✅ ' + t('dimensions.physical') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
-    onComplete()
-    setNote('')
-    onBack()
+    showToast('✅ ' + t('dimensions.physical') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
+    
+    // Tunggu toast muncul sebentar sebelum pindah screen
+    setTimeout(() => {
+      onComplete()
+      setNote('')
+      onBack()
+    }, 1500)
   }
 
   return (
@@ -81,6 +87,15 @@ function PhysicalScreen({ onBack, onComplete, currentUser }) {
         </div>
 
       </div>
+
+      {/* TOAST */}
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={hideToast} 
+        />
+      )}
     </div>
   )
 }

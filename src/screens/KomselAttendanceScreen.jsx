@@ -2,11 +2,13 @@
 import { useState, useEffect } from 'react'
 import AttendanceRow from '../components/AttendanceRow'
 import { useTranslation } from '../hooks/useTranslation'
-// PERBAIKAN: Import getTodayWIB
 import { saveKomselAttendance, getCurrentJemaat, getJemaat, getTodayWIB } from '../services/database'
+import Toast from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 
 function KomselAttendanceScreen({ onBack }) {
   const { t } = useTranslation()
+  const { toast, showToast, hideToast } = useToast()
   const [attendance, setAttendance] = useState([])
   const [location, setLocation] = useState('Storehouse')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -35,7 +37,10 @@ function KomselAttendanceScreen({ onBack }) {
   }
 
   const handleSave = async () => {
-    if (!user) { alert('❌ Silakan login terlebih dahulu'); return }
+    if (!user) {
+      showToast('❌ Silakan login terlebih dahulu', 'error')
+      return
+    }
 
     setIsSubmitting(true)
     const anggotaData = attendance.map(a => ({ name: a.name, present: a.present }))
@@ -44,17 +49,18 @@ function KomselAttendanceScreen({ onBack }) {
     const { data, error } = await saveKomselAttendance({
       lokasi: location,
       anggota: anggotaData,
-      // PERBAIKAN: Gunakan getTodayWIB() bukan toISOString()
       tanggal: getTodayWIB()
     })
 
     setIsSubmitting(false)
 
     if (error) {
-      alert(`❌ Gagal menyimpan: ${error.message}`)
+      showToast(`❌ Gagal menyimpan: ${error.message}`, 'error')
     } else {
-      alert(`✅ ${t('attendance.komsel')} ${t('attendance.saved')}!\n${t('attendance.present')}: ${presentCount} ${t('attendance.from')} ${attendance.length} ${t('attendance.people')}`)
-      onBack()
+      showToast(`✅ ${t('attendance.komsel')} ${t('attendance.saved')}! (${presentCount} hadir)`)
+      setTimeout(() => {
+        onBack()
+      }, 1500)
     }
   }
 
@@ -116,6 +122,15 @@ function KomselAttendanceScreen({ onBack }) {
         </button>
 
       </div>
+
+      {/* TOAST */}
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={hideToast} 
+        />
+      )}
     </div>
   )
 }

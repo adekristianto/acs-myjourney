@@ -2,16 +2,18 @@
 import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
 import { saveJournal } from '../services/database'
-import { getTodayWIB } from '../services/database'
+import Toast from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 
 function WisdomScreen({ onBack, onComplete, currentUser }) {
   const { t } = useTranslation()
+  const { toast, showToast, hideToast } = useToast()
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async () => {
     if (!note.trim()) {
-      alert(t('journal.required') || '⚠️ Mohon isi pembelajaran hari ini')
+      showToast(t('journal.required') || '⚠️ Mohon isi pembelajaran hari ini', 'error')
       return
     }
 
@@ -19,7 +21,7 @@ function WisdomScreen({ onBack, onComplete, currentUser }) {
     const jemaatId = currentUser?.id
 
     if (!jemaatId) {
-      alert('❌ Silakan login terlebih dahulu')
+      showToast('❌ Silakan login terlebih dahulu', 'error')
       setIsSubmitting(false)
       return
     }
@@ -28,37 +30,37 @@ function WisdomScreen({ onBack, onComplete, currentUser }) {
       jemaatId: jemaatId,
       dimension: 'wisdom',
       content: { note: note },
-      //entryDate: new Date().toISOString().split('T')[0]
       entryDate: getTodayWIB()
     })
 
     setIsSubmitting(false)
 
     if (error) {
-      alert(`❌ Gagal menyimpan: ${error.message}`)
+      showToast(`❌ Gagal menyimpan: ${error.message}`, 'error')
       return
     }
 
-    alert('✅ ' + t('dimensions.wisdom') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
-    onComplete()
-    setNote('')
-    onBack()
+    showToast('✅ ' + t('dimensions.wisdom') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
+    
+    setTimeout(() => {
+      onComplete()
+      setNote('')
+      onBack()
+    }, 1500)
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0D0D0D] text-gray-900 dark:text-white">
       <div className="max-w-sm mx-auto px-4 py-4">
         
-        {/* HEADER */}
         <div className="flex items-center py-3">
-          <button onClick={onBack} className="text-2xl mr-3 text-gray-900 dark:text-white">←</button>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('journal.wisdom')}</h1>
+          <button onClick={onBack} className="text-2xl mr-3">←</button>
+          <h1 className="text-xl font-bold">{t('journal.wisdom')}</h1>
         </div>
 
-        {/* FORM */}
         <div className="mt-4 space-y-4">
           <div>
-            <label className="block font-medium mb-2 text-gray-900 dark:text-white">
+            <label className="block font-medium mb-2">
               📝 {t('journal.wisdomPrompt') || 'Apa yang kamu pelajari hari ini?'}
             </label>
             <textarea
@@ -84,6 +86,15 @@ function WisdomScreen({ onBack, onComplete, currentUser }) {
         </div>
 
       </div>
+
+      {/* TOAST */}
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={hideToast} 
+        />
+      )}
     </div>
   )
 }

@@ -1,17 +1,19 @@
 // screens/SocialScreen.jsx
 import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
-// PERBAIKAN: Import getTodayWIB
 import { saveJournal, getTodayWIB } from '../services/database'
+import Toast from '../components/Toast'
+import { useToast } from '../hooks/useToast'
 
 function SocialScreen({ onBack, onComplete, currentUser }) {
   const { t } = useTranslation()
+  const { toast, showToast, hideToast } = useToast()
   const [note, setNote] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleSubmit = async () => {
     if (!note.trim()) {
-      alert(t('journal.required') || '⚠️ Mohon isi interaksi sosial hari ini')
+      showToast(t('journal.required') || '⚠️ Mohon isi interaksi sosial hari ini', 'error')
       return
     }
 
@@ -19,7 +21,7 @@ function SocialScreen({ onBack, onComplete, currentUser }) {
     const jemaatId = currentUser?.id
 
     if (!jemaatId) {
-      alert('❌ Silakan login terlebih dahulu')
+      showToast('❌ Silakan login terlebih dahulu', 'error')
       setIsSubmitting(false)
       return
     }
@@ -28,21 +30,23 @@ function SocialScreen({ onBack, onComplete, currentUser }) {
       jemaatId: jemaatId,
       dimension: 'social',
       content: { note: note },
-      // PERBAIKAN: Hapus komentar kode lama
       entryDate: getTodayWIB()
     })
 
     setIsSubmitting(false)
 
     if (error) {
-      alert(`❌ Gagal menyimpan: ${error.message}`)
+      showToast(`❌ Gagal menyimpan: ${error.message}`, 'error')
       return
     }
 
-    alert('✅ ' + t('dimensions.social') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
-    onComplete()
-    setNote('')
-    onBack()
+    showToast('✅ ' + t('dimensions.social') + ' — ' + (t('journal.saved') || 'Jurnal disimpan!'))
+    
+    setTimeout(() => {
+      onComplete()
+      setNote('')
+      onBack()
+    }, 1500)
   }
 
   return (
@@ -82,6 +86,15 @@ function SocialScreen({ onBack, onComplete, currentUser }) {
         </div>
 
       </div>
+
+      {/* TOAST */}
+      {toast && (
+        <Toast 
+          message={toast.message} 
+          type={toast.type} 
+          onClose={hideToast} 
+        />
+      )}
     </div>
   )
 }
