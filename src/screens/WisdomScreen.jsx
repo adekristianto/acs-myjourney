@@ -1,7 +1,7 @@
 // screens/WisdomScreen.jsx
 import { useState } from 'react'
 import { useTranslation } from '../hooks/useTranslation'
-import { saveJournal } from '../services/database'
+import { saveJournal, getTodayWIB } from '../services/database' // ← PERBAIKAN DI SINI
 import Toast from '../components/Toast'
 import { useToast } from '../hooks/useToast'
 
