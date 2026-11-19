@@ -1,9 +1,9 @@
-// screens/LoginScreen.jsx
+// src/screens/LoginScreen.jsx — redesign iOS (logika tidak berubah)
 import { useState } from 'react'
 import { loginJemaat } from '../services/database'
 import { useTranslation } from '../hooks/useTranslation'
 
-function LoginScreen({ onLoginSuccess, onForgot }) {
+export default function LoginScreen({ onLoginSuccess, onForgot }) {
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -12,104 +12,47 @@ function LoginScreen({ onLoginSuccess, onForgot }) {
 
   const handleLogin = async () => {
     if (loading) return
-    if (!email.trim() || !password) {
-      setError(t('login.errorEmpty'))
-      return
-    }
-    setLoading(true)
-    setError('')
-
-    const { data, error: loginError } = await loginJemaat(
-      email.trim().toLowerCase(),
-      password
-    )
-    setLoading(false)
-
-    if (loginError || !data?.user) {
+    if (!email.trim() || !password) { setError(t('login.errorEmpty')); return }
+    setLoading(true); setError('')
+    try {
+      const { data, error: loginError } = await loginJemaat(email.trim().toLowerCase(), password)
+      if (loginError || !data?.user) { setError(t('login.error')); return }
+      await onLoginSuccess(data.user)
+    } catch {
       setError(t('login.error'))
-      return
+    } finally {
+      setLoading(false)
     }
-    onLoginSuccess(data.user)
   }
-
-  const onEnter = (e) => {
-    if (e.key === 'Enter') handleLogin()
-  }
-
-  const inputClass =
-    'w-full p-4 rounded-xl text-base bg-white dark:bg-[#151515] ' +
-    'border border-[#E5E5E5] dark:border-[#2A2A2A] ' +
-    'text-[#111111] dark:text-white placeholder-gray-400 ' +
-    'focus:outline-none focus:ring-2 focus:ring-[#FF8A00] focus:border-transparent ' +
-    'transition-all duration-200'
+  const onEnter = (e) => { if (e.key === 'Enter') handleLogin() }
+  const row = 'w-full bg-transparent px-4 h-[50px] text-[17px] text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none'
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-4 py-6 bg-[#F8F8F8] dark:bg-[#0D0D0D]">
-      
-      <div className="w-full max-w-sm">
-        
-        <div className="mb-8 text-center">
-          <div className="flex justify-center mb-4">
-            <img src="/acs-logo.png" alt="ACS" className="h-14 w-auto object-contain" />
-          </div>
-          <h1 className="text-3xl font-bold text-[#111111] dark:text-white">My Journey</h1>
+    <div className="min-h-screen bg-[#F2F2F7] dark:bg-black flex flex-col">
+      <div className="w-full max-w-sm mx-auto px-4 flex-1 flex flex-col justify-center py-10">
+        <img src="/icon-512.png" alt="" className="w-24 h-24 rounded-[22px] mx-auto shadow-xl shadow-black/20" />
+        <h1 className="mt-5 text-center text-[28px] font-bold tracking-tight text-gray-900 dark:text-white">My Journey</h1>
+        <p className="mt-1 mb-8 text-center text-[15px] text-gray-500 dark:text-gray-400">GBI ACS · Lukas 2:52</p>
+
+        <div className="rounded-2xl bg-white dark:bg-[#1C1C1E] overflow-hidden">
+          <input type="email" inputMode="email" autoComplete="email" autoCapitalize="none" value={email}
+            onChange={(e) => { setEmail(e.target.value); setError('') }} onKeyDown={onEnter}
+            placeholder={t('login.email')} className={row} />
+          <div className="h-px bg-black/[0.08] dark:bg-white/[0.1] ml-4" />
+          <input type="password" autoComplete="current-password" value={password}
+            onChange={(e) => { setPassword(e.target.value); setError('') }} onKeyDown={onEnter}
+            placeholder={t('login.password')} className={row} />
         </div>
+        <p className="px-4 mt-2 text-[13px] text-gray-500 dark:text-gray-400">{t('login.helper')}</p>
 
-        <div className="rounded-2xl p-6 bg-white dark:bg-[#151515]">
-          <label className="block text-sm font-medium mb-2 text-[#111111] dark:text-white">
-            {t('login.email')}
-          </label>
-          <input
-            type="email"
-            inputMode="email"
-            autoComplete="email"
-            autoCapitalize="none"
-            value={email}
-            onChange={(e) => { setEmail(e.target.value); setError('') }}
-            onKeyDown={onEnter}
-            placeholder="email@contoh.com"
-            className={inputClass + ' mb-5'}
-          />
+        {error && <p className="px-4 mt-3 text-[14px] text-[#FF3B30]">{error}</p>}
 
-          <label className="block text-sm font-medium mb-2 text-[#111111] dark:text-white">
-            {t('login.password')}
-          </label>
-          <input
-            type="password"
-            autoComplete="current-password"
-            value={password}
-            onChange={(e) => { setPassword(e.target.value); setError('') }}
-            onKeyDown={onEnter}
-            placeholder={t('login.passwordPlaceholder')}
-            className={inputClass + ' mb-6'}
-          />
-
-          {error && (
-            <p className="text-sm mb-4 text-center text-[#EF4444]">{error}</p>
-          )}
-
-          <button
-            onClick={handleLogin}
-            disabled={loading}
-            className="w-full py-4 rounded-xl font-semibold text-white bg-[#FF8A00] disabled:opacity-50 transition-opacity hover:bg-[#E67A00] active:scale-[0.98]"
-          >
-            {loading ? t('common.signingIn') : t('login.button')}
-          </button>
-        </div>
-
-        <p className="text-xs text-center mt-6 text-[#666666] dark:text-[#999999]">
-          {t('login.helper')}
-        </p>
-        <button
-          onClick={onForgot}
-          className="w-full text-center text-sm mt-4 text-[#FF8A00] underline"
-        >
-          {t('forgotLink')}
+        <button onClick={handleLogin} disabled={loading}
+          className="mt-6 w-full h-[50px] rounded-xl bg-[#FF8A00] text-white text-[17px] font-semibold disabled:opacity-60 active:scale-[0.99] transition">
+          {loading ? t('common.signingIn') : t('login.button')}
         </button>
-        
+        <button onClick={onForgot} className="mt-3 w-full h-11 text-[#FF8A00] text-[16px] font-medium">{t('forgotLink')}</button>
       </div>
     </div>
   )
 }
-
-export default LoginScreen

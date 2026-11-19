@@ -8,7 +8,7 @@ import {
   needsPasswordChange, 
   logoutJemaat,
   isRecoveryLink,
-  getTodayWIB
+  getTodayWIB // Import helper WIB
 } from './services/database'
 import LoginScreen from './screens/LoginScreen'
 import SetPasswordScreen from './screens/SetPasswordScreen'
@@ -21,9 +21,12 @@ import WorkerAttendanceScreen from './screens/WorkerAttendanceScreen'
 import WisdomScreen from './screens/WisdomScreen'
 import PhysicalScreen from './screens/PhysicalScreen'
 import SocialScreen from './screens/SocialScreen'
+import JournalHistoryScreen from './screens/JournalHistoryScreen'
+import { useToast } from './ui/Toast'
 import './index.css'
 
 function App() {
+  const toast = useToast()
   const [currentUser, setCurrentUser] = useState(null)
   const [authLoading, setAuthLoading] = useState(true)
   const [currentScreen, setCurrentScreen] = useState('home')
@@ -47,13 +50,13 @@ function App() {
   })
   const [isRecovery, setIsRecovery] = useState(false)
 
-  // LOAD STATUS HARI INI
+  // LOAD STATUS HARI INI (dari journal, BUKAN streak)
   const loadTodayStatus = async (jemaatId) => {
     if (!jemaatId) return
 
     const dims = ['wisdom', 'physical', 'spiritual', 'social']
     const todayStatus = {}
-    const today = getTodayWIB()
+    const today = getTodayWIB() // Gunakan WIB
 
     for (const dim of dims) {
       const { data, error } = await getTodayJournal(jemaatId, dim)
@@ -75,17 +78,20 @@ function App() {
   }
 
   // UPDATE STREAK SETELAH SUBMIT JOURNAL
+  // Logika perhitungan streak sekarang ditangani sepenuhnya oleh database.js
   const updateStreakAfterJournal = async (dimensionId) => {
     if (!currentUser) return
 
-    const result = await updateStreak(currentUser.id, dimensionId)
+    // Cukup panggil updateStreak tanpa menghitung manual
+    const result = await updateStreak(currentUser.id, dimensionId, 0) // parameter ke-3 tidak dipakai lagi
 
     if (result.error) {
       console.error('❌ Streak update failed:', result.error)
-      alert('⚠️ Gagal menyimpan streak. Jurnal tetap tersimpan, tapi streak mungkin tidak akurat.')
+      toast.error('Jurnal tersimpan, tapi streak gagal diperbarui. Coba buka ulang aplikasi.')
       return
     }
 
+    // Muat ulang semua status dari database
     await loadTodayStatus(currentUser.id)
   }
 
@@ -95,6 +101,7 @@ function App() {
       document.documentElement.classList.add('dark')
     }
 
+    // CEK APAKAH INI RECOVERY LINK — PALING PERTAMA!
     if (isRecoveryLink()) {
       setIsRecovery(true)
       setAuthLoading(false)
@@ -151,10 +158,13 @@ function App() {
     setStreaks({ wisdom: 0, physical: 0, spiritual: 0, social: 0, full_day: 0 })
   }
 
+  // Handler setelah selesai reset password
   const handlePasswordResetComplete = async () => {
+    // Clear hash & query params dari URL
     window.history.replaceState(null, '', window.location.pathname)
     setIsRecovery(false)
     setAuthStep('ready')
+    // Reload user session setelah reset
     const { data } = await getCurrentJemaat()
     if (data) {
       setCurrentUser(data)
@@ -163,23 +173,26 @@ function App() {
   }
 
   const renderWithContainer = (Screen, props) => (
-    <div className="max-w-lg mx-auto min-h-screen bg-gray-50 dark:bg-[#0D0D0D] pt-safe">
+    <div className="min-h-screen bg-[#F2F2F7] dark:bg-black pt-safe">
       <Screen {...props} />
     </div>
   )
 
+  // LOADING
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-[#0D0D0D]">
-        <p className="text-gray-600 dark:text-gray-400">Memuat...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] dark:bg-black">
+        <img src="/icon-192.png" alt="" className="w-16 h-16 rounded-[15px] animate-pulse" />
       </div>
     )
   }
 
+  // ⭐ PRIORITAS TERTINGGI: RECOVERY LINK
   if (isRecovery || isRecoveryLink()) {
     return <SetPasswordScreen onComplete={handlePasswordResetComplete} />
   }
 
+  // LOGIN / FORGOT PASSWORD
   if (!currentUser) {
     if (showForgot) {
       return <ForgotPasswordScreen onBack={() => setShowForgot(false)} />
@@ -190,18 +203,24 @@ function App() {
     />
   }
 
+  // SET PASSWORD (first login)
   if (authStep === 'setPassword') {
     return <SetPasswordScreen onComplete={() => setAuthStep('welcome')} />
   }
 
+  // WELCOME SCREEN
   if (authStep === 'welcome') {
     return <WelcomeScreen 
       onBegin={() => setAuthStep('ready')} 
       darkMode={darkMode} 
-      currentUser={currentUser}
+      currentUser={currentUser} // PERBAIKAN: Kirim currentUser ke WelcomeScreen
     />
   }
 
+  // NAVIGATION
+  if (currentScreen === 'history') {
+    return renderWithContainer(JournalHistoryScreen, { onBack: () => setCurrentScreen('home'), currentUser })
+  }
   if (currentScreen === 'komsel') {
     return renderWithContainer(KomselAttendanceScreen, { onBack: () => setCurrentScreen('home') })
   }
@@ -238,8 +257,9 @@ function App() {
     })
   }
 
+  // HOME
   return (
-    <div className="max-w-lg mx-auto pt-safe">
+    <div className="pt-safe bg-[#F2F2F7] dark:bg-black min-h-screen">
       <HomeScreen
         currentUser={currentUser}
         darkMode={darkMode}
@@ -250,8 +270,7 @@ function App() {
           const map = { wisdom: 'wisdom', physical: 'physical', spiritual: 'bible', social: 'social' }
           setCurrentScreen(map[id])
         }}
-        onKomselClick={() => setCurrentScreen('komsel')}
-        onWorkerClick={() => setCurrentScreen('worker')}
+        onHistoryClick={() => setCurrentScreen('history')}
         onLogout={handleLogout}
       />
     </div>
