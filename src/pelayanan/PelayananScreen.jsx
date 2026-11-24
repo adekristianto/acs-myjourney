@@ -9,6 +9,9 @@ import RolesView from './RolesView'
 import KomselAttendance from './KomselAttendance'
 import { KomselOverview, KomselMembersAdmin } from './KomselOverview'
 import DevotionSettings from './DevotionSettings'
+import AbsensiAdmin from './AbsensiAdmin'
+import PerayaanAdmin from './PerayaanAdmin'
+import { KOMSEL } from './config'
 
 const Item = ({ icon, color, title, sub, onClick, first }) => (
   <Row onClick={onClick} first={first}>
@@ -23,7 +26,8 @@ export default function PelayananScreen({ currentUser, roles, onBack }) {
   const isSuper = roles.some(r => r.role === 'super_admin')
   const isAdmin = isSuper || roles.some(r => r.role === 'admin')
   const myTeams = roles.filter(r => r.role === 'ketua_team').map(r => r.scope)
-  const myKomsel = [...new Set(roles.filter(r => r.role === 'ketua_komsel' || r.role === 'pembantu_komsel').map(r => r.scope))]
+  const myKomsel = [...new Set(roles.filter(r => ['ketua_komsel', 'pembantu_komsel', 'gembala'].includes(r.role))
+    .flatMap(r => r.scope === 'Semua' ? KOMSEL : [r.scope]))]
   const back = () => setView({ name: 'hub' })
 
   if (view.name === 'report') return <ReportForm currentUser={currentUser} team={view.team} onBack={back} />
@@ -32,6 +36,8 @@ export default function PelayananScreen({ currentUser, roles, onBack }) {
   if (view.name === 'roles') return <RolesView onBack={back} />
   if (view.name === 'komsel') return <KomselAttendance komsel={view.komsel} currentUser={currentUser} onBack={view.from === 'overview' ? () => setView({ name: 'komselOverview' }) : back} backLabel={view.from === 'overview' ? 'Komsel' : 'Pelayanan'} />
   if (view.name === 'komselOverview') return <KomselOverview onBack={back} onOpen={k => setView({ name: 'komsel', komsel: k, from: 'overview' })} onManage={() => setView({ name: 'komselMembers' })} />
+  if (view.name === 'perayaan') return <PerayaanAdmin onBack={back} />
+  if (view.name === 'absensi') return <AbsensiAdmin currentUser={currentUser} onBack={back} />
   if (view.name === 'devotion') return <DevotionSettings currentUser={currentUser} onBack={back} />
   if (view.name === 'komselMembers') return <KomselMembersAdmin onBack={() => setView({ name: 'komselOverview' })} />
 
@@ -50,7 +56,9 @@ export default function PelayananScreen({ currentUser, roles, onBack }) {
       )}
       {isAdmin && (
         <Section title="Admin">
-          <Item first icon="▤" color="#0A84FF" title="Panel Laporan" sub="Pilih tanggal → semuanya tersusun" onClick={() => setView({ name: 'panel' })} />
+          <Item first icon="☑" color="#FF2D55" title="Absensi" sub="Minggu · Meeting Pekerja · Morning Devotion" onClick={() => setView({ name: 'absensi' })} />
+          <Item icon="🎂" color="#FF9500" title="Ulang Tahun & Anniversary" sub="Per bulan · salin ke WhatsApp" onClick={() => setView({ name: 'perayaan' })} />
+          <Item icon="▤" color="#0A84FF" title="Panel Laporan" sub="Pilih tanggal → semuanya tersusun" onClick={() => setView({ name: 'panel' })} />
           <Item icon="✓" color="#34C759" title="Tindakan" sub="Siapa beresin & kapan selesai" onClick={() => setView({ name: 'actions' })} />
           <Item icon="☑" color="#AF52DE" title="Komsel" sub="Ringkasan 5 komsel · atur anggota" onClick={() => setView({ name: 'komselOverview' })} />
           <Item icon="☀" color="#5856D6" title="Morning Devotion" sub="Bahan eksposisi & link Zoom" onClick={() => setView({ name: 'devotion' })} />
@@ -58,7 +66,7 @@ export default function PelayananScreen({ currentUser, roles, onBack }) {
       )}
       {isSuper && (
         <Section title="Super admin">
-          <Item first icon="⚙" color="#5E5CE6" title="Kelola Peran" sub="Admin, ketua team, ketua & pembantu komsel" onClick={() => setView({ name: 'roles' })} />
+          <Item first icon="⚙" color="#5E5CE6" title="Kelola Peran" sub="Admin, ketua team, komsel & tim pastoral" onClick={() => setView({ name: 'roles' })} />
         </Section>
       )}
     </Page>

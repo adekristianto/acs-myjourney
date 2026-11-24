@@ -14,7 +14,8 @@ export function KomselOverview({ onBack, onOpen, onManage }) {
     Promise.all(KOMSEL.map(async k => {
       const [m, h] = await Promise.all([getMembers(k), getMeetings(k, 4)])
       const last = h.data[0]
-      return { k, members: m.data.length, last, hadir: last ? last.hadir.filter(x => x.hadir).length : 0, care: needsCare(m.data, h.data).length }
+      const reg = m.data.filter(x => !x.gembala)
+      return { k, members: reg.length, last, hadir: last ? last.hadir.filter(x => x.hadir && reg.some(r => r.id === x.jemaat_id)).length : 0, care: needsCare(m.data, h.data).length }
     })).then(r => { setRows(r); setLoading(false) })
   }, [])
   return (

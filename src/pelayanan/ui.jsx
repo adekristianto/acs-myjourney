@@ -48,19 +48,22 @@ export function Field({ label, hint, children }) {
 }
 
 export function Chips({ options, value, onChange, multi }) {
-  const isOn = (o) => (multi ? (value || []).includes(o) : value === o)
+  // options: ['A','B'] atau [{ value, label }]
+  const val = (o) => (typeof o === 'object' ? o.value : o)
+  const lab = (o) => (typeof o === 'object' ? o.label : o)
+  const isOn = (o) => (multi ? (value || []).includes(val(o)) : value === val(o))
   const toggle = (o) => {
-    if (!multi) return onChange(o)
+    if (!multi) return onChange(val(o))
     const v = value || []
-    onChange(v.includes(o) ? v.filter(x => x !== o) : [...v, o])
+    onChange(v.includes(val(o)) ? v.filter(x => x !== val(o)) : [...v, val(o)])
   }
   return (
     <div className="flex flex-wrap gap-2">
       {options.map(o => (
-        <button key={o} type="button" onClick={() => toggle(o)}
+        <button key={val(o)} type="button" onClick={() => toggle(o)}
           className={`px-3 py-1.5 rounded-full text-[14px] font-medium border transition ${isOn(o)
             ? 'bg-[#FF8A00] border-[#FF8A00] text-white'
-            : 'bg-transparent border-gray-300 dark:border-[#3A3A3C] text-gray-700 dark:text-gray-300'}`}>{o}</button>
+            : 'bg-transparent border-gray-300 dark:border-[#3A3A3C] text-gray-700 dark:text-gray-300'}`}>{lab(o)}</button>
       ))}
     </div>
   )

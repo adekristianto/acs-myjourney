@@ -40,13 +40,15 @@ export default function KomselAttendance({ komsel, currentUser, onBack, backLabe
   }, [tanggal, meetings])
 
   const care = useMemo(() => needsCare(members, meetings), [members, meetings])
-  const count = members.filter(m => hadir[m.id]).length
-  const pct = members.length ? Math.round((count / members.length) * 100) : 0
+  const reg = members.filter(m => !m.gembala)
+  const pastors = members.filter(m => m.gembala)
+  const count = reg.filter(m => hadir[m.id]).length
+  const pct = reg.length ? Math.round((count / reg.length) * 100) : 0
   const existing = meetings.some(m => m.tanggal === tanggal)
 
   const save = async () => {
     if (saving) return
-    if (!members.length) return toast.error('Belum ada anggota di komsel ini. Minta admin mengatur anggota.')
+    if (!reg.length) return toast.error('Belum ada anggota di komsel ini. Minta admin mengatur anggota.')
     setSaving(true)
     try {
       const hadirMap = Object.fromEntries(members.map(m => [m.id, !!hadir[m.id]]))
@@ -65,7 +67,7 @@ export default function KomselAttendance({ komsel, currentUser, onBack, backLabe
             <input type="date" className={inputCls} value={tanggal} max={getTodayWIB()} onChange={e => setTanggal(e.target.value)} />
           </div>
           <div className="px-4 pb-4">
-            <p className="text-[15px] text-gray-500"><b className="text-gray-900 dark:text-white text-[20px]">{count}</b> dari {members.length} hadir · {pct}%</p>
+            <p className="text-[15px] text-gray-500"><b className="text-gray-900 dark:text-white text-[20px]">{count}</b> dari {reg.length} hadir · {pct}%</p>
             <div className="h-1.5 rounded-full bg-black/[0.08] dark:bg-white/[0.12] mt-2 overflow-hidden"><div className="h-full bg-[#34C759] transition-all" style={{ width: pct + '%' }} /></div>
             {existing && <p className="mt-2 text-[13px] text-[#FF8A00]">Tanggal ini sudah tercatat — kamu sedang mengubahnya.</p>}
           </div>
@@ -83,20 +85,31 @@ export default function KomselAttendance({ komsel, currentUser, onBack, backLabe
           </Section>
         )}
 
-        <Section title={`Anggota · ${members.length}`} footer={members.length === 0 ? 'Belum ada anggota. Admin mengatur anggota lewat Pelayanan → Anggota Komsel.' : null}>
-          {members.length > 0 && (
+        <Section title={`Anggota · ${reg.length}`} footer={reg.length === 0 ? 'Belum ada anggota. Admin mengatur anggota lewat Pelayanan → Anggota Komsel.' : null}>
+          {reg.length > 0 && (
             <div className="flex justify-end px-4 pt-3 gap-4 text-[14px] font-semibold text-[#FF8A00]">
-              <button onClick={() => setHadir(Object.fromEntries(members.map(m => [m.id, true])))}>Semua hadir</button>
+              <button onClick={() => setHadir(h => ({ ...h, ...Object.fromEntries(reg.map(m => [m.id, true])) }))}>Semua hadir</button>
               <button onClick={() => setHadir({})}>Kosongkan</button>
             </div>
           )}
-          {members.map((m, i) => (
+          {reg.map((m, i) => (
             <Row key={m.id} first={i === 0}>
               <span className="flex-1 text-[16px]">{m.nama}</span>
               <Switch on={!!hadir[m.id]} onClick={() => setHadir(h => ({ ...h, [m.id]: !h[m.id] }))} />
             </Row>
           ))}
         </Section>
+
+        {pastors.length > 0 && (
+          <Section title={`Gembala & tim pastoral · ${pastors.length}`} footer="Hadir sebagai gembala. Tidak dihitung dalam persentase dan tidak masuk daftar perlu disapa.">
+            {pastors.map((m, i) => (
+              <Row key={m.id} first={i === 0}>
+                <span className="flex-1 text-[16px]">{m.nama}</span>
+                <Switch on={!!hadir[m.id]} onClick={() => setHadir(h => ({ ...h, [m.id]: !h[m.id] }))} />
+              </Row>
+            ))}
+          </Section>
+        )}
 
         <Section title="Tambahan">
           <div className="px-4 py-3 flex items-center gap-3">

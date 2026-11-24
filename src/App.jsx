@@ -23,6 +23,18 @@ import PhysicalScreen from './screens/PhysicalScreen'
 import SocialScreen from './screens/SocialScreen'
 import JournalHistoryScreen from './screens/JournalHistoryScreen'
 import PelayananScreen from './pelayanan/PelayananScreen'
+import CheckinScreen from './screens/CheckinScreen'
+import ProfilKeluargaScreen from './screens/ProfilKeluargaScreen'
+import { checkin } from './services/absensi'
+
+// Scan QR / tap NFC: link .../?hadir=minggu → simpan dulu, diproses setelah login
+;(() => {
+  const v = new URLSearchParams(window.location.search).get('hadir')
+  if (v && /^[a-z]{3,12}$/.test(v)) {
+    try { sessionStorage.setItem('pendingCheckin', v) } catch { /* abaikan */ }
+    window.history.replaceState(null, '', window.location.pathname)
+  }
+})()
 import { getMyRoles } from './services/pelayanan'
 import { useToast } from './ui/Toast'
 import './index.css'
@@ -52,6 +64,7 @@ function App() {
   })
   const [isRecovery, setIsRecovery] = useState(false)
   const [roles, setRoles] = useState([])
+  const [checkinResult, setCheckinResult] = useState(null)
 
   // Peran pelayanan (super admin, admin, ketua team, ketua/pembantu komsel)
   useEffect(() => {
@@ -60,6 +73,20 @@ function App() {
     getMyRoles(currentUser.id).then(({ data }) => { if (alive) setRoles(data || []) })
     return () => { alive = false }
   }, [currentUser?.id])
+
+  // Proses absensi dari scan QR / NFC setelah login
+  useEffect(() => {
+    if (!currentUser?.id || authStep === 'setPassword') return
+    let jenis = null
+    try { jenis = sessionStorage.getItem('pendingCheckin') } catch { /* abaikan */ }
+    if (!jenis) return
+    try { sessionStorage.removeItem('pendingCheckin') } catch { /* abaikan */ }
+    checkin(jenis).then(({ data, error }) => {
+      setCheckinResult(error ? { status: 'error', jenis } : data)
+      setAuthStep('ready')
+      setCurrentScreen('checkin')
+    })
+  }, [currentUser?.id, authStep])
 
   // LOAD STATUS HARI INI (dari journal, BUKAN streak)
   const loadTodayStatus = async (jemaatId) => {
@@ -229,8 +256,14 @@ function App() {
   }
 
   // NAVIGATION
-  if (currentScreen === 'pelayanan' && roles.length > 0) {
+  if (currentScreen === 'checkin') {
+    return <CheckinScreen result={checkinResult} onDone={() => { setCheckinResult(null); setCurrentScreen('home') }} />
+  }
+  if (currentScreen === 'pelayanan' && roles.some(r => r.role !== 'pekerja')) {
     return renderWithContainer(PelayananScreen, { onBack: () => setCurrentScreen('home'), currentUser, roles })
+  }
+  if (currentScreen === 'keluarga') {
+    return renderWithContainer(ProfilKeluargaScreen, { onBack: () => setCurrentScreen('home'), currentUser })
   }
   if (currentScreen === 'history') {
     return renderWithContainer(JournalHistoryScreen, { onBack: () => setCurrentScreen('home'), currentUser })
@@ -285,6 +318,7 @@ function App() {
           setCurrentScreen(map[id])
         }}
         onHistoryClick={() => setCurrentScreen('history')}
+        onFamilyClick={() => setCurrentScreen('keluarga')}
         roles={roles}
         onPelayananClick={() => setCurrentScreen('pelayanan')}
         onLogout={handleLogout}

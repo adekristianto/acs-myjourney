@@ -4,12 +4,15 @@ import { useTranslation } from '../hooks/useTranslation'
 import { getSalutation, getGreetingMessage } from '../data/greetings'
 import { getJourneyStats } from '../services/history'
 import DailyCard from '../components/DailyCard'
+import LinksCard from '../components/LinksCard'
+import CelebrationPopup from '../components/CelebrationPopup'
+import TodayCelebrationsCard from '../components/TodayCelebrationsCard'
 import { DimIcon, IconChevron, IconCheck, IconMoon, IconSun, IconLogout, IconBook } from '../ui/icons'
 
 const L = {
   id: {
     today: 'Hari ini', of: 'dari 4 dimensi', allDone: 'Lengkap hari ini. Luar biasa!', keepGoing: 'Satu langkah lagi tetap berarti.',
-    done: 'Selesai', streak: (n) => `${n} hari beruntun`, journey: 'Perjalananmu', history: 'Lihat riwayat jurnal',
+    done: 'Selesai', streak: (n) => `${n} hari beruntun`, journey: 'Perjalananmu', history: 'Lihat riwayat jurnal', family: 'Profil & keluarga',
     entries: 'catatan', days: 'hari aktif', since: 'sejak', logout: 'Keluar', locale: 'id-ID',
     dims: { wisdom: 'Akal Budi', physical: 'Fisik', spiritual: 'Rohani', social: 'Sosial' },
     prompts: { wisdom: 'Apa yang kamu pelajari hari ini?', physical: 'Gerak, makan, istirahat', spiritual: 'Ayat & renungan', social: 'Siapa yang kamu berkati?' },
@@ -17,7 +20,7 @@ const L = {
   },
   en: {
     today: 'Today', of: 'of 4 dimensions', allDone: 'All four done today. Amazing!', keepGoing: 'One more step still counts.',
-    done: 'Done', streak: (n) => `${n}-day streak`, journey: 'Your journey', history: 'View journal history',
+    done: 'Done', streak: (n) => `${n}-day streak`, journey: 'Your journey', history: 'View journal history', family: 'Profile & family',
     entries: 'entries', days: 'active days', since: 'since', logout: 'Log out', locale: 'en-US',
     dims: { wisdom: 'Wisdom', physical: 'Physical', spiritual: 'Spiritual', social: 'Social' },
     prompts: { wisdom: 'What did you learn today?', physical: 'Move, eat, rest', spiritual: 'Scripture & reflection', social: 'Who did you bless today?' },
@@ -37,7 +40,7 @@ function Ring({ value, total = 4 }) {
   )
 }
 
-export default function HomeScreen({ currentUser, darkMode, toggleDarkMode, dimensions, streaks, onDimensionClick, onHistoryClick, onLogout, roles = [], onPelayananClick }) {
+export default function HomeScreen({ currentUser, darkMode, toggleDarkMode, dimensions, streaks, onDimensionClick, onHistoryClick, onFamilyClick, onLogout, roles = [], onPelayananClick }) {
   const { locale, toggleLocale } = useTranslation()
   const lang = locale === 'id' ? 'id' : 'en'
   const tx = L[lang]
@@ -89,6 +92,9 @@ export default function HomeScreen({ currentUser, darkMode, toggleDarkMode, dime
         {/* Kartu harian: Morning Devotion / baca Alkitab */}
         <DailyCard lang={lang} spiritualDone={!!dimensions.find(d => d.id === 'spiritual')?.completed}
           onOpenSpiritual={() => onDimensionClick('spiritual')} />
+        <LinksCard lang={lang} />
+        {roles.some(r => ['super_admin', 'admin', 'gembala'].includes(r.role)) && <TodayCelebrationsCard />}
+        <CelebrationPopup currentUser={currentUser} />
 
         {/* Dimensions */}
         <h2 className="mt-7 mb-2 px-4 text-[13px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{tx.verse}</h2>
@@ -127,10 +133,15 @@ export default function HomeScreen({ currentUser, darkMode, toggleDarkMode, dime
             <span className="flex-1 text-left text-[17px] font-medium">{tx.history}</span>
             <span className="text-gray-300 dark:text-gray-600"><IconChevron /></span>
           </button>
+          <button onClick={onFamilyClick} className="w-full flex items-center gap-3 pl-4 pr-3 py-3 border-t border-black/[0.08] dark:border-white/[0.1] active:bg-black/[0.04] dark:active:bg-white/[0.06]">
+            <span className="w-[30px] h-[30px] rounded-[8px] bg-[#FF2D55] text-white flex items-center justify-center text-[15px]">♥</span>
+            <span className="flex-1 text-left text-[17px] font-medium">{tx.family}</span>
+            <span className="text-gray-300 dark:text-gray-600"><IconChevron /></span>
+          </button>
         </section>
 
         {/* Pelayanan — hanya untuk yang punya peran */}
-        {roles.length > 0 && (<>
+        {roles.some(r => r.role !== 'pekerja') && (<>
           <h2 className="mt-7 mb-2 px-4 text-[13px] uppercase tracking-wide text-gray-500 dark:text-gray-400">{tx.serve}</h2>
           <section className="rounded-2xl bg-white dark:bg-[#1C1C1E] overflow-hidden">
             <button onClick={onPelayananClick} className="w-full flex items-center gap-3 pl-4 pr-3 py-3 active:bg-black/[0.04] dark:active:bg-white/[0.06]">

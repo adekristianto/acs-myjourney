@@ -5,7 +5,7 @@ import { TEAMS, KOMSEL } from './config'
 import { useToast } from '../ui/Toast'
 import { Page, Section, Row, inputCls } from './ui'
 
-const ROLE_LABEL = { super_admin: 'Super admin', admin: 'Admin', ketua_team: 'Ketua team pelayanan', ketua_komsel: 'Ketua komsel', pembantu_komsel: 'Pembantu komsel' }
+const ROLE_LABEL = { super_admin: 'Super admin', admin: 'Admin', ketua_team: 'Ketua team pelayanan', ketua_komsel: 'Ketua komsel', pembantu_komsel: 'Pembantu komsel', gembala: 'Gembala / tim pastoral', pekerja: 'Pekerja' }
 
 export default function RolesView({ onBack }) {
   const toast = useToast()
@@ -19,7 +19,7 @@ export default function RolesView({ onBack }) {
   }
   useEffect(() => { load() }, [])
   const name = useMemo(() => Object.fromEntries(people.map(p => [p.id, p.nama])), [people])
-  const scopes = draft.role === 'ketua_team' ? TEAMS : draft.role.includes('komsel') ? KOMSEL : []
+  const scopes = draft.role === 'ketua_team' ? TEAMS : draft.role === 'gembala' ? ['Semua', ...KOMSEL] : draft.role.includes('komsel') ? KOMSEL : []
 
   const add = async () => {
     if (!draft.jemaat_id) return toast.error('Pilih orangnya.')
@@ -48,7 +48,7 @@ export default function RolesView({ onBack }) {
           </select>
           {scopes.length > 0 && (
             <select className={inputCls} value={draft.scope} onChange={e => setDraft(d => ({ ...d, scope: e.target.value }))}>
-              <option value="">— pilih {draft.role === 'ketua_team' ? 'team' : 'komsel'} —</option>{scopes.map(s => <option key={s}>{s}</option>)}
+              <option value="">— pilih {draft.role === 'ketua_team' ? 'team' : 'komsel'} —</option>{scopes.map(s => <option key={s} value={s}>{s === 'Semua' ? 'Semua komsel' : s}</option>)}
             </select>
           )}
           <button onClick={add} className="w-full h-11 rounded-xl bg-[#FF8A00] text-white font-semibold">Tambah</button>

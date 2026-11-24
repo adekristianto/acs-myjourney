@@ -41,11 +41,12 @@ export const setMemberKomsel = (jemaatId, komsel) => safe(async () => {
   return { data: null, error }
 })
 
+// Tim pastoral (gembala) tidak pernah masuk daftar ini.
 // "Perlu disapa": tidak hadir di 3 pertemuan terakhir berturut-turut (yang tercatat)
 export function needsCare(members, meetings, streak = 3) {
   const recent = meetings.slice(0, streak)
   if (recent.length < streak) return []
-  return members.filter(m => recent.every(meet => {
+  return members.filter(m => !m.gembala && recent.every(meet => {
     const h = meet.hadir.find(x => x.jemaat_id === m.id)
     return !h || !h.hadir
   }))
