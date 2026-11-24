@@ -13,6 +13,9 @@ import {
 import LoginScreen from './screens/LoginScreen'
 import SetPasswordScreen from './screens/SetPasswordScreen'
 import ForgotPasswordScreen from './screens/ForgotPasswordScreen'
+import DaftarScreen from './screens/DaftarScreen'
+import MenungguScreen from './screens/MenungguScreen'
+import { sesiAktif } from './services/pendaftaran'
 import WelcomeScreen from './screens/WelcomeScreen'
 import HomeScreen from './screens/HomeScreen'
 import BibleJournalScreen from './screens/BibleJournalScreen'
@@ -46,6 +49,8 @@ function App() {
   const [currentScreen, setCurrentScreen] = useState('home')
   const [authStep, setAuthStep] = useState('ready')
   const [showForgot, setShowForgot] = useState(false)
+  const [showDaftar, setShowDaftar] = useState(false)
+  const [pending, setPending] = useState(false)
   const [darkMode, setDarkMode] = useState(() => {
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
@@ -151,6 +156,8 @@ function App() {
       if (data) {
         setCurrentUser(data)
         await loadTodayStatus(data.id)
+      } else if (await sesiAktif()) {
+        setPending(true) // akun ada, belum disetujui sebagai jemaat
       }
       setAuthLoading(false)
     }
@@ -165,7 +172,8 @@ function App() {
   const handleLoginSuccess = async (authUser) => {
     const mustChange = needsPasswordChange(authUser)
     const { data } = await getCurrentJemaat()
-    setCurrentUser(data || authUser)
+    if (!data) { setPending(true); return } // belum disetujui → layar menunggu
+    setCurrentUser(data)
     loadTodayStatus(authUser.id)
     setCurrentScreen('home')
     setAuthStep(mustChange ? 'setPassword' : 'welcome')
@@ -186,6 +194,8 @@ function App() {
     })
     
     setCurrentUser(null)
+    setPending(false)
+    setShowDaftar(false)
     setCurrentScreen('home')
     setDimensions([
       { id: 'wisdom', label: 'Akal Budi', icon: '🧠', completed: false },
@@ -194,6 +204,19 @@ function App() {
       { id: 'social', label: 'Sosial', icon: '🤝', completed: false },
     ])
     setStreaks({ wisdom: 0, physical: 0, spiritual: 0, social: 0, full_day: 0 })
+  }
+
+  // Akun yang baru daftar: cek apakah admin sudah menyetujui
+  const handleCekPersetujuan = async () => {
+    const { data } = await getCurrentJemaat()
+    if (!data) return false
+    setPending(false)
+    setShowDaftar(false)
+    setCurrentUser(data)
+    loadTodayStatus(data.id)
+    setCurrentScreen('home')
+    setAuthStep('welcome')
+    return true
   }
 
   // Handler setelah selesai reset password
@@ -231,13 +254,20 @@ function App() {
   }
 
   // LOGIN / FORGOT PASSWORD
+  if (!currentUser && pending) {
+    return <MenungguScreen onCekLagi={handleCekPersetujuan} onLogout={handleLogout} />
+  }
   if (!currentUser) {
+    if (showDaftar) {
+      return <DaftarScreen onBack={() => setShowDaftar(false)} onTerkirim={() => { setShowDaftar(false); setPending(true) }} />
+    }
     if (showForgot) {
       return <ForgotPasswordScreen onBack={() => setShowForgot(false)} />
     }
     return <LoginScreen
       onLoginSuccess={handleLoginSuccess}
       onForgot={() => setShowForgot(true)}
+      onDaftar={() => setShowDaftar(true)}
     />
   }
 

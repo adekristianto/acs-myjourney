@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { loginJemaat } from '../services/database'
 import { useTranslation } from '../hooks/useTranslation'
 
-export default function LoginScreen({ onLoginSuccess, onForgot }) {
+export default function LoginScreen({ onLoginSuccess, onForgot, onDaftar }) {
   const { t } = useTranslation()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -52,6 +52,12 @@ export default function LoginScreen({ onLoginSuccess, onForgot }) {
           {loading ? t('common.signingIn') : t('login.button')}
         </button>
         <button onClick={onForgot} className="mt-3 w-full h-11 text-[#FF8A00] text-[16px] font-medium">{t('forgotLink')}</button>
+        {onDaftar && (
+          <p className="mt-6 text-center text-[15px] text-gray-500 dark:text-gray-400">
+            Jemaat baru / belum punya akun?{' '}
+            <button onClick={onDaftar} className="text-[#FF8A00] font-semibold">Daftar di sini</button>
+          </p>
+        )}
       </div>
     </div>
   )

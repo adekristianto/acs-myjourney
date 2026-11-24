@@ -11,6 +11,7 @@ import { KomselOverview, KomselMembersAdmin } from './KomselOverview'
 import DevotionSettings from './DevotionSettings'
 import AbsensiAdmin from './AbsensiAdmin'
 import PerayaanAdmin from './PerayaanAdmin'
+import PendaftaranAdmin from './PendaftaranAdmin'
 import { KOMSEL } from './config'
 
 const Item = ({ icon, color, title, sub, onClick, first }) => (
@@ -37,6 +38,7 @@ export default function PelayananScreen({ currentUser, roles, onBack }) {
   if (view.name === 'komsel') return <KomselAttendance komsel={view.komsel} currentUser={currentUser} onBack={view.from === 'overview' ? () => setView({ name: 'komselOverview' }) : back} backLabel={view.from === 'overview' ? 'Komsel' : 'Pelayanan'} />
   if (view.name === 'komselOverview') return <KomselOverview onBack={back} onOpen={k => setView({ name: 'komsel', komsel: k, from: 'overview' })} onManage={() => setView({ name: 'komselMembers' })} />
   if (view.name === 'perayaan') return <PerayaanAdmin onBack={back} />
+  if (view.name === 'pendaftaran') return <PendaftaranAdmin onBack={back} />
   if (view.name === 'absensi') return <AbsensiAdmin currentUser={currentUser} onBack={back} />
   if (view.name === 'devotion') return <DevotionSettings currentUser={currentUser} onBack={back} />
   if (view.name === 'komselMembers') return <KomselMembersAdmin onBack={() => setView({ name: 'komselOverview' })} />
@@ -56,7 +58,8 @@ export default function PelayananScreen({ currentUser, roles, onBack }) {
       )}
       {isAdmin && (
         <Section title="Admin">
-          <Item first icon="☑" color="#FF2D55" title="Absensi" sub="Minggu · Meeting Pekerja · Morning Devotion" onClick={() => setView({ name: 'absensi' })} />
+          <Item first icon="＋" color="#34C759" title="Pendaftaran Jemaat Baru" sub="Setujui yang daftar sendiri di aplikasi" onClick={() => setView({ name: 'pendaftaran' })} />
+          <Item icon="☑" color="#FF2D55" title="Absensi" sub="Minggu · Meeting Pekerja · Morning Devotion" onClick={() => setView({ name: 'absensi' })} />
           <Item icon="🎂" color="#FF9500" title="Ulang Tahun & Anniversary" sub="Per bulan · salin ke WhatsApp" onClick={() => setView({ name: 'perayaan' })} />
           <Item icon="▤" color="#0A84FF" title="Panel Laporan" sub="Pilih tanggal → semuanya tersusun" onClick={() => setView({ name: 'panel' })} />
           <Item icon="✓" color="#34C759" title="Tindakan" sub="Siapa beresin & kapan selesai" onClick={() => setView({ name: 'actions' })} />
